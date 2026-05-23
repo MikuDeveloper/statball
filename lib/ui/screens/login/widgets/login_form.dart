@@ -65,13 +65,13 @@ class LoginForm extends ConsumerWidget with SnackbarsMixin {
     form.markAsDisabled();
     isLoading.setTrue();
 
-
     try {
       final email = form.control('email').value as String;
       final password = form.control('password').value as String;
       await ref
           .read(sbUserUseCaseProvider)
           .login(email: email, password: password);
+      if (context.mounted) const HomeRoute().go(context);
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(

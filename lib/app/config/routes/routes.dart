@@ -37,3 +37,11 @@ class ForgotPasswordRoute extends RelativeGoRouteData
   Widget build(BuildContext context, GoRouterState state) =>
       const ForgotPasswordScreen();
 }
+
+@TypedGoRoute<HomeRoute>(path: '/home', name: 'home')
+class HomeRoute extends GoRouteData with $HomeRoute {
+  const HomeRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const HomeScreen();
+}
