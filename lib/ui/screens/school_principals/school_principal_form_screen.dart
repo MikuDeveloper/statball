@@ -2,68 +2,65 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
-import 'package:statball/app/config/routes/routes.dart';
 import 'package:statball/app/config/themes/app_colors.dart';
-import 'package:statball/app/providers/forms/school_form_provider.dart';
+import 'package:statball/app/providers/forms/school_principal_form_provider.dart';
 import 'package:statball/app/providers/global/school_principals_provider.dart';
-import 'package:statball/app/providers/global/schools_provider.dart';
-import 'package:statball/domain/index.dart' show School, SchoolPrincipal;
-import 'package:statball/infrastructure/index.dart' show SchoolApiException;
+import 'package:statball/domain/index.dart' show SchoolPrincipal;
+import 'package:statball/infrastructure/index.dart'
+    show SchoolPrincipalApiException;
 import 'package:statball/ui/common/forms/sb_field_label.dart';
 import 'package:statball/ui/common/utils/snackbars_mixin.dart';
 
 // ════════════════════════════════════════════════════════════════════════════
-//  SCHOOL FORM SCREEN — pantalla completa para crear o editar una escuela.
-//  En tablet/web limita el ancho a 640px para que la lectura sea cómoda.
+//  SCHOOL PRINCIPAL FORM SCREEN — crear o editar un director.
+//  Limita ancho a 640px en >=720px para confort de lectura en tablet/web.
 // ════════════════════════════════════════════════════════════════════════════
-class SchoolFormScreen extends ConsumerStatefulWidget {
-  final int? schoolId;
-  const SchoolFormScreen({super.key, this.schoolId});
+class SchoolPrincipalFormScreen extends ConsumerStatefulWidget {
+  final int? principalId;
+  const SchoolPrincipalFormScreen({super.key, this.principalId});
 
   @override
-  ConsumerState<SchoolFormScreen> createState() => _SchoolFormScreenState();
+  ConsumerState<SchoolPrincipalFormScreen> createState() =>
+      _SchoolPrincipalFormScreenState();
 }
 
-class _SchoolFormScreenState extends ConsumerState<SchoolFormScreen>
+class _SchoolPrincipalFormScreenState
+    extends ConsumerState<SchoolPrincipalFormScreen>
     with SnackbarsMixin {
   bool _saving = false;
-  School? _existing;
+  SchoolPrincipal? _existing;
 
-  bool get _isEdit => widget.schoolId != null;
+  bool get _isEdit => widget.principalId != null;
 
   @override
   void initState() {
     super.initState();
-    // Hidrata el form si estamos en modo edición (post-frame para tener acceso a ref)
     if (_isEdit) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _hydrate());
     }
   }
 
   void _hydrate() {
-    if (widget.schoolId == null) return;
-    final school = ref.read(schoolsProvider.notifier).byId(widget.schoolId!);
-    if (school == null) return;
+    if (widget.principalId == null) return;
+    final principal = ref
+        .read(schoolPrincipalsProvider.notifier)
+        .byId(widget.principalId!);
+    if (principal == null) return;
 
-    _existing = school;
-    ref.read(schoolFormProvider).form.patchValue({
-      'name': school.name,
-      'site': school.site ?? '',
-      'facebook': school.facebook ?? '',
-      'instagram': school.instagram ?? '',
-      'phoneNumber': school.phoneNumber ?? '',
-      'email': school.email ?? '',
-      'city': school.city ?? '',
-      'state': school.state ?? '',
-      'country': school.country ?? '',
-      'principalId': school.principalId,
+    _existing = principal;
+    ref.read(schoolPrincipalFormProvider).form.patchValue({
+      'name': principal.name,
+      'lastname': principal.lastname,
+      'email': principal.email ?? '',
+      'phoneNumber': principal.phoneNumber ?? '',
+      'instagram': principal.instagram ?? '',
+      'facebook': principal.facebook ?? '',
     });
   }
 
   @override
   void dispose() {
-    // Limpia los valores del form al salir para no contaminar la próxima sesión
-    ref.read(schoolFormProvider).form.reset();
+    ref.read(schoolPrincipalFormProvider).form.reset();
     super.dispose();
   }
 
@@ -73,7 +70,7 @@ class _SchoolFormScreenState extends ConsumerState<SchoolFormScreen>
   }
 
   Future<void> _save() async {
-    final form = ref.read(schoolFormProvider).form;
+    final form = ref.read(schoolPrincipalFormProvider).form;
     if (form.invalid) {
       form.markAllAsTouched();
       return;
@@ -84,36 +81,34 @@ class _SchoolFormScreenState extends ConsumerState<SchoolFormScreen>
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
 
-    final school = School(
+    final principal = SchoolPrincipal(
       id: _existing?.id,
       name: (values['name'] as String).trim(),
-      site: _clean(values['site']),
-      facebook: _clean(values['facebook']),
-      instagram: _clean(values['instagram']),
-      phoneNumber: _clean(values['phoneNumber']),
+      lastname: (values['lastname'] as String).trim(),
       email: _clean(values['email']),
-      city: _clean(values['city']),
-      state: _clean(values['state']),
-      country: _clean(values['country']),
-      principalId: values['principalId'] as int?,
+      phoneNumber: _clean(values['phoneNumber']),
+      instagram: _clean(values['instagram']),
+      facebook: _clean(values['facebook']),
     );
 
     try {
-      final notifier = ref.read(schoolsProvider.notifier);
+      final notifier = ref.read(schoolPrincipalsProvider.notifier);
       if (_isEdit) {
-        await notifier.update(school);
-        messenger.showSnackBar(successSnackBar(message: 'Escuela actualizada'));
+        await notifier.update(principal);
+        messenger.showSnackBar(
+          successSnackBar(message: 'Director actualizado'),
+        );
       } else {
-        await notifier.create(school);
-        messenger.showSnackBar(successSnackBar(message: 'Escuela creada'));
+        await notifier.create(principal);
+        messenger.showSnackBar(successSnackBar(message: 'Director creado'));
       }
       form.reset();
       if (navigator.canPop()) navigator.pop();
-    } on SchoolApiException catch (e) {
+    } on SchoolPrincipalApiException catch (e) {
       messenger.showSnackBar(errorSnackBar(message: e.message));
     } catch (_) {
       messenger.showSnackBar(
-        errorSnackBar(message: 'No se pudo guardar la escuela'),
+        errorSnackBar(message: 'No se pudo guardar el director'),
       );
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -122,7 +117,7 @@ class _SchoolFormScreenState extends ConsumerState<SchoolFormScreen>
 
   @override
   Widget build(BuildContext context) {
-    final form = ref.watch(schoolFormProvider).form;
+    final form = ref.watch(schoolPrincipalFormProvider).form;
     final width = MediaQuery.of(context).size.width;
     final maxFormWidth = width > 720 ? 640.0 : double.infinity;
 
@@ -134,7 +129,7 @@ class _SchoolFormScreenState extends ConsumerState<SchoolFormScreen>
         elevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
         title: Text(
-          _isEdit ? 'Editar escuela' : 'Nueva escuela',
+          _isEdit ? 'Editar director' : 'Nuevo director',
           style: const TextStyle(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.w700,
@@ -151,12 +146,21 @@ class _SchoolFormScreenState extends ConsumerState<SchoolFormScreen>
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
                 children: [
-                  const _SectionTitle('Datos básicos'),
+                  const _SectionTitle('Datos personales'),
                   const SizedBox(height: 12),
-                  const _LabeledField(
-                    name: 'name',
-                    label: 'NOMBRE *',
-                    hint: 'Nombre de la escuela',
+                  const _ResponsiveRow(
+                    children: [
+                      _LabeledField(
+                        name: 'name',
+                        label: 'NOMBRE *',
+                        hint: 'Ej. Juan',
+                      ),
+                      _LabeledField(
+                        name: 'lastname',
+                        label: 'APELLIDO *',
+                        hint: 'Ej. García',
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 24),
 
@@ -178,13 +182,9 @@ class _SchoolFormScreenState extends ConsumerState<SchoolFormScreen>
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  const _LabeledField(
-                    name: 'site',
-                    label: 'SITIO WEB',
-                    hint: 'https://...',
-                    keyboard: TextInputType.url,
-                  ),
+                  const SizedBox(height: 24),
+
+                  const _SectionTitle('Redes sociales'),
                   const SizedBox(height: 12),
                   const _ResponsiveRow(
                     children: [
@@ -200,35 +200,6 @@ class _SchoolFormScreenState extends ConsumerState<SchoolFormScreen>
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
-
-                  const _SectionTitle('Ubicación'),
-                  const SizedBox(height: 12),
-                  const _ResponsiveRow(
-                    children: [
-                      _LabeledField(
-                        name: 'city',
-                        label: 'CIUDAD',
-                        hint: 'Ciudad',
-                      ),
-                      _LabeledField(
-                        name: 'state',
-                        label: 'ESTADO',
-                        hint: 'Estado',
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  const _LabeledField(
-                    name: 'country',
-                    label: 'PAÍS',
-                    hint: 'País',
-                  ),
-                  const SizedBox(height: 24),
-
-                  const _SectionTitle('Director'),
-                  const SizedBox(height: 12),
-                  const _PrincipalPicker(),
                   const SizedBox(height: 32),
 
                   ReactiveFormConsumer(
@@ -257,7 +228,9 @@ class _SchoolFormScreenState extends ConsumerState<SchoolFormScreen>
                                   ),
                                 )
                               : Text(
-                                  _isEdit ? 'Guardar cambios' : 'Crear escuela',
+                                  _isEdit
+                                      ? 'Guardar cambios'
+                                      : 'Crear director',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w700,
                                     fontSize: 15,
@@ -298,7 +271,6 @@ class _SectionTitle extends StatelessWidget {
   }
 }
 
-// Pone los hijos lado a lado en >=600px de ancho, apilados en móvil.
 class _ResponsiveRow extends StatelessWidget {
   final List<Widget> children;
   const _ResponsiveRow({required this.children});
@@ -391,169 +363,6 @@ class _LabeledField extends StatelessWidget {
           },
         ),
       ],
-    );
-  }
-}
-
-// ─── _PrincipalPicker ───────────────────────────────────────────────────────
-// Dropdown nullable: permite asignar un director del catálogo, sin director,
-// o saltar al form de directores para crear uno nuevo (vuelve solo).
-class _PrincipalPicker extends ConsumerWidget {
-  const _PrincipalPicker();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final async = ref.watch(schoolPrincipalsProvider);
-    final control =
-        ReactiveForm.of(context)!.control('principalId') as FormControl<int>;
-
-    return async.when(
-      loading: () => const _PickerSkeleton(message: 'Cargando directores...'),
-      error: (e, _) =>
-          _PickerSkeleton(message: 'No se pudo cargar el catálogo: $e'),
-      data: (principals) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _PrincipalDropdown(control: control, principals: principals),
-            const SizedBox(height: 8),
-            TextButton.icon(
-              onPressed: () =>
-                  const SchoolPrincipalFormRoute().push<void>(context),
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.accentDark,
-                alignment: Alignment.centerLeft,
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-              ),
-              icon: const Icon(Icons.add_rounded, size: 18),
-              label: const Text(
-                'Crear nuevo director',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _PrincipalDropdown extends StatelessWidget {
-  final FormControl<int> control;
-  final List<SchoolPrincipal> principals;
-  const _PrincipalDropdown({required this.control, required this.principals});
-
-  @override
-  Widget build(BuildContext context) {
-    // Filtra principals válidos (con id) y arma los items del dropdown.
-    final valid = principals.where((p) => p.id != null).toList();
-
-    return StreamBuilder<int?>(
-      stream: control.valueChanges,
-      initialData: control.value,
-      builder: (context, snapshot) {
-        return DropdownButtonFormField<int?>(
-          initialValue: snapshot.data,
-          isExpanded: true,
-          hint: const Text(
-            'Sin director',
-            style: TextStyle(color: AppColors.textMuted),
-          ),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: AppColors.card,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 14,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.cardBorder),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.cardBorder),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: AppColors.accentDark,
-                width: 1.4,
-              ),
-            ),
-            suffixIcon: snapshot.data == null
-                ? null
-                : IconButton(
-                    tooltip: 'Quitar director',
-                    icon: const Icon(
-                      Icons.clear_rounded,
-                      size: 18,
-                      color: AppColors.textMuted,
-                    ),
-                    onPressed: () => control.value = null,
-                  ),
-          ),
-          items: <DropdownMenuItem<int?>>[
-            const DropdownMenuItem<int?>(
-              value: null,
-              child: Text(
-                'Sin director',
-                style: TextStyle(color: AppColors.textMuted),
-              ),
-            ),
-            ...valid.map(
-              (p) => DropdownMenuItem<int?>(
-                value: p.id,
-                child: Text(
-                  p.displayName,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: AppColors.textPrimary),
-                ),
-              ),
-            ),
-          ],
-          onChanged: (v) => control.value = v,
-        );
-      },
-    );
-  }
-}
-
-class _PickerSkeleton extends StatelessWidget {
-  final String message;
-  const _PickerSkeleton({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.cardBorder),
-      ),
-      child: Row(
-        children: [
-          const SizedBox(
-            width: 14,
-            height: 14,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: AppColors.textMuted,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              message,
-              style: const TextStyle(
-                color: AppColors.textMuted,
-                fontSize: 12.5,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

@@ -12,6 +12,7 @@ List<RouteBase> get $appRoutes => [
   $forgotPasswordRoute,
   $homeRoute,
   $schoolsRoute,
+  $schoolPrincipalsRoute,
 ];
 
 RouteBase get $rootRoute =>
@@ -197,4 +198,70 @@ T? _$convertMapValue<T>(
 ) {
   final value = map[key];
   return value == null ? null : converter(value);
+}
+
+RouteBase get $schoolPrincipalsRoute => GoRouteData.$route(
+  path: '/school-principals',
+  name: 'school_principals',
+  factory: $SchoolPrincipalsRoute._fromState,
+  routes: [
+    RelativeGoRouteData.$route(
+      path: 'form',
+      factory: $SchoolPrincipalFormRoute._fromState,
+    ),
+  ],
+);
+
+mixin $SchoolPrincipalsRoute on GoRouteData {
+  static SchoolPrincipalsRoute _fromState(GoRouterState state) =>
+      const SchoolPrincipalsRoute();
+
+  @override
+  String get location => GoRouteData.$location('/school-principals');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $SchoolPrincipalFormRoute on RelativeGoRouteData {
+  static SchoolPrincipalFormRoute _fromState(GoRouterState state) =>
+      SchoolPrincipalFormRoute(
+        id: _$convertMapValue('id', state.uri.queryParameters, int.tryParse),
+      );
+
+  SchoolPrincipalFormRoute get _self => this as SchoolPrincipalFormRoute;
+
+  @override
+  String get subLocation => RelativeGoRouteData.$location(
+    'form',
+    queryParams: {if (_self.id != null) 'id': _self.id!.toString()},
+  );
+
+  @override
+  String get relativeLocation => './$subLocation';
+
+  @override
+  void goRelative(BuildContext context) => context.go(relativeLocation);
+
+  @override
+  Future<T?> pushRelative<T>(BuildContext context) =>
+      context.push<T>(relativeLocation);
+
+  @override
+  void pushReplacementRelative(BuildContext context) =>
+      context.pushReplacement(relativeLocation);
+
+  @override
+  void replaceRelative(BuildContext context) =>
+      context.replace(relativeLocation);
 }

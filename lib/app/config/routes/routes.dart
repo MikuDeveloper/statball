@@ -70,3 +70,28 @@ class SchoolFormRoute extends RelativeGoRouteData with $SchoolFormRoute {
   Widget build(BuildContext context, GoRouterState state) =>
       SchoolFormScreen(schoolId: id);
 }
+
+@TypedGoRoute<SchoolPrincipalsRoute>(
+  path: '/school-principals',
+  name: 'school_principals',
+  routes: <TypedRelativeGoRoute<RelativeGoRouteData>>[
+    TypedRelativeGoRoute<SchoolPrincipalFormRoute>(path: 'form'),
+  ],
+)
+class SchoolPrincipalsRoute extends GoRouteData with $SchoolPrincipalsRoute {
+  const SchoolPrincipalsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const SchoolPrincipalsScreen();
+}
+
+class SchoolPrincipalFormRoute extends RelativeGoRouteData
+    with $SchoolPrincipalFormRoute {
+  const SchoolPrincipalFormRoute({this.id});
+  final int? id;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      SchoolPrincipalFormScreen(principalId: id);
+}

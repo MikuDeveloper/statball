@@ -3,23 +3,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:statball/app/config/routes/routes.dart';
 import 'package:statball/app/config/themes/app_colors.dart';
-import 'package:statball/app/providers/global/schools_provider.dart';
-import 'package:statball/domain/index.dart' show School;
+import 'package:statball/app/providers/global/school_principals_provider.dart';
+import 'package:statball/domain/index.dart' show SchoolPrincipal;
 
-import 'widgets/school_list_tile.dart';
+import 'widgets/school_principal_list_tile.dart';
 
 // ════════════════════════════════════════════════════════════════════════════
-//  SCHOOLS SCREEN — listado del catálogo de escuelas (super_scout).
-//  Responsive: en >= 720px usamos grid de 2 columnas para aprovechar tablet.
+//  SCHOOL PRINCIPALS SCREEN — catálogo de directores (super_scout).
+//  Mismo patrón que /schools: lista responsive, búsqueda, CRUD via form.
 // ════════════════════════════════════════════════════════════════════════════
-class SchoolsScreen extends ConsumerStatefulWidget {
-  const SchoolsScreen({super.key});
+class SchoolPrincipalsScreen extends ConsumerStatefulWidget {
+  const SchoolPrincipalsScreen({super.key});
 
   @override
-  ConsumerState<SchoolsScreen> createState() => _SchoolsScreenState();
+  ConsumerState<SchoolPrincipalsScreen> createState() =>
+      _SchoolPrincipalsScreenState();
 }
 
-class _SchoolsScreenState extends ConsumerState<SchoolsScreen> {
+class _SchoolPrincipalsScreenState
+    extends ConsumerState<SchoolPrincipalsScreen> {
   final _searchCtrl = TextEditingController();
   String _query = '';
 
@@ -31,7 +33,7 @@ class _SchoolsScreenState extends ConsumerState<SchoolsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final asyncSchools = ref.watch(schoolsProvider);
+    final async = ref.watch(schoolPrincipalsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.bgLight,
@@ -41,7 +43,7 @@ class _SchoolsScreenState extends ConsumerState<SchoolsScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
         title: const Text(
-          'Escuelas',
+          'Directores',
           style: TextStyle(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.w700,
@@ -50,26 +52,21 @@ class _SchoolsScreenState extends ConsumerState<SchoolsScreen> {
         ),
         actions: [
           IconButton(
-            tooltip: 'Directores',
-            icon: const Icon(Icons.badge_outlined),
-            onPressed: () => const SchoolPrincipalsRoute().push<void>(context),
-          ),
-          IconButton(
             tooltip: 'Recargar',
             icon: const Icon(Icons.refresh_rounded),
-            onPressed: asyncSchools.isLoading
+            onPressed: async.isLoading
                 ? null
-                : () => ref.read(schoolsProvider.notifier).refresh(),
+                : () => ref.read(schoolPrincipalsProvider.notifier).refresh(),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => const SchoolFormRoute().push<void>(context),
+        onPressed: () => const SchoolPrincipalFormRoute().push<void>(context),
         backgroundColor: AppColors.accentDark,
         foregroundColor: AppColors.onAccent,
         icon: const Icon(Icons.add_rounded),
         label: const Text(
-          'Nueva escuela',
+          'Nuevo director',
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
@@ -81,21 +78,20 @@ class _SchoolsScreenState extends ConsumerState<SchoolsScreen> {
               onChanged: (v) => setState(() => _query = v.trim().toLowerCase()),
             ),
             Expanded(
-              child: asyncSchools.when(
+              child: async.when(
                 loading: () => const Center(
                   child: CircularProgressIndicator(color: AppColors.accentDark),
                 ),
                 error: (e, _) => _ErrorView(
                   message: e.toString(),
-                  onRetry: () => ref.read(schoolsProvider.notifier).refresh(),
+                  onRetry: () =>
+                      ref.read(schoolPrincipalsProvider.notifier).refresh(),
                 ),
-                data: (schools) {
-                  final filtered = _filter(schools);
-                  if (schools.isEmpty) return const _EmptyView();
-                  if (filtered.isEmpty) {
-                    return const _NoMatchView();
-                  }
-                  return _SchoolsList(schools: filtered);
+                data: (principals) {
+                  final filtered = _filter(principals);
+                  if (principals.isEmpty) return const _EmptyView();
+                  if (filtered.isEmpty) return const _NoMatchView();
+                  return _PrincipalsList(principals: filtered);
                 },
               ),
             ),
@@ -105,23 +101,18 @@ class _SchoolsScreenState extends ConsumerState<SchoolsScreen> {
     );
   }
 
-  List<School> _filter(List<School> all) {
+  List<SchoolPrincipal> _filter(List<SchoolPrincipal> all) {
     if (_query.isEmpty) return all;
-    return all.where((s) {
-      final hay = [
-        s.name,
-        s.city ?? '',
-        s.state ?? '',
-        s.country ?? '',
-      ].join(' ').toLowerCase();
+    return all.where((p) {
+      final hay = [p.name, p.lastname, p.email ?? ''].join(' ').toLowerCase();
       return hay.contains(_query);
     }).toList();
   }
 }
 
-class _SchoolsList extends ConsumerWidget {
-  final List<School> schools;
-  const _SchoolsList({required this.schools});
+class _PrincipalsList extends ConsumerWidget {
+  final List<SchoolPrincipal> principals;
+  const _PrincipalsList({required this.principals});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -131,7 +122,7 @@ class _SchoolsList extends ConsumerWidget {
 
     return RefreshIndicator(
       color: AppColors.accentDark,
-      onRefresh: () => ref.read(schoolsProvider.notifier).refresh(),
+      onRefresh: () => ref.read(schoolPrincipalsProvider.notifier).refresh(),
       child: isWide
           ? GridView.builder(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -142,15 +133,17 @@ class _SchoolsList extends ConsumerWidget {
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
               ),
-              itemCount: schools.length,
-              itemBuilder: (_, i) => SchoolListTile(school: schools[i]),
+              itemCount: principals.length,
+              itemBuilder: (_, i) =>
+                  SchoolPrincipalListTile(principal: principals[i]),
             )
           : ListView.separated(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.fromLTRB(16, 12, 16, bottomGap),
-              itemCount: schools.length,
+              itemCount: principals.length,
               separatorBuilder: (_, _) => const SizedBox(height: 8),
-              itemBuilder: (_, i) => SchoolListTile(school: schools[i]),
+              itemBuilder: (_, i) =>
+                  SchoolPrincipalListTile(principal: principals[i]),
             ),
     );
   }
@@ -170,7 +163,7 @@ class _SearchBar extends StatelessWidget {
         onChanged: onChanged,
         style: const TextStyle(color: AppColors.textPrimary),
         decoration: InputDecoration(
-          hintText: 'Buscar por nombre o ubicación...',
+          hintText: 'Buscar por nombre o correo...',
           hintStyle: const TextStyle(color: AppColors.textMuted),
           prefixIcon: const Icon(
             Icons.search_rounded,
@@ -214,18 +207,18 @@ class _EmptyView extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(22),
               decoration: const BoxDecoration(
-                color: AppColors.accentSurface,
+                color: AppColors.accentAltSurface,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.account_balance_rounded,
-                color: AppColors.accentDark,
+                Icons.badge_rounded,
+                color: AppColors.accentAlt,
                 size: 48,
               ),
             ),
             const SizedBox(height: 18),
             const Text(
-              'Aún no hay escuelas',
+              'Aún no hay directores',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -234,7 +227,7 @@ class _EmptyView extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             const Text(
-              'Crea la primera con el botón “Nueva escuela”.',
+              'Crea el primero con el botón “Nuevo director”.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 13.5, color: AppColors.textMuted),
             ),
