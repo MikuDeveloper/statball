@@ -11,6 +11,7 @@ List<RouteBase> get $appRoutes => [
   $loginRoute,
   $forgotPasswordRoute,
   $homeRoute,
+  $schoolsRoute,
 ];
 
 RouteBase get $rootRoute =>
@@ -123,4 +124,77 @@ mixin $HomeRoute on GoRouteData {
 
   @override
   void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $schoolsRoute => GoRouteData.$route(
+  path: '/schools',
+  name: 'schools',
+  factory: $SchoolsRoute._fromState,
+  routes: [
+    RelativeGoRouteData.$route(
+      path: 'form',
+      factory: $SchoolFormRoute._fromState,
+    ),
+  ],
+);
+
+mixin $SchoolsRoute on GoRouteData {
+  static SchoolsRoute _fromState(GoRouterState state) => const SchoolsRoute();
+
+  @override
+  String get location => GoRouteData.$location('/schools');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $SchoolFormRoute on RelativeGoRouteData {
+  static SchoolFormRoute _fromState(GoRouterState state) => SchoolFormRoute(
+    id: _$convertMapValue('id', state.uri.queryParameters, int.tryParse),
+  );
+
+  SchoolFormRoute get _self => this as SchoolFormRoute;
+
+  @override
+  String get subLocation => RelativeGoRouteData.$location(
+    'form',
+    queryParams: {if (_self.id != null) 'id': _self.id!.toString()},
+  );
+
+  @override
+  String get relativeLocation => './$subLocation';
+
+  @override
+  void goRelative(BuildContext context) => context.go(relativeLocation);
+
+  @override
+  Future<T?> pushRelative<T>(BuildContext context) =>
+      context.push<T>(relativeLocation);
+
+  @override
+  void pushReplacementRelative(BuildContext context) =>
+      context.pushReplacement(relativeLocation);
+
+  @override
+  void replaceRelative(BuildContext context) =>
+      context.replace(relativeLocation);
+}
+
+T? _$convertMapValue<T>(
+  String key,
+  Map<String, String> map,
+  T? Function(String) converter,
+) {
+  final value = map[key];
+  return value == null ? null : converter(value);
 }

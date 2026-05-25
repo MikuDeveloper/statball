@@ -45,3 +45,28 @@ class HomeRoute extends GoRouteData with $HomeRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) => const HomeScreen();
 }
+
+@TypedGoRoute<SchoolsRoute>(
+  path: '/schools',
+  name: 'schools',
+  routes: <TypedRelativeGoRoute<RelativeGoRouteData>>[
+    TypedRelativeGoRoute<SchoolFormRoute>(path: 'form'),
+  ],
+)
+class SchoolsRoute extends GoRouteData with $SchoolsRoute {
+  const SchoolsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const SchoolsScreen();
+}
+
+class SchoolFormRoute extends RelativeGoRouteData with $SchoolFormRoute {
+  const SchoolFormRoute({this.id});
+  // Si llega `id` rendereamos modo edición; sin id es creación.
+  final int? id;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      SchoolFormScreen(schoolId: id);
+}
