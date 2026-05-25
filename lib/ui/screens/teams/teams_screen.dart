@@ -4,24 +4,34 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:statball/app/config/routes/routes.dart';
 import 'package:statball/app/config/themes/app_colors.dart';
 import 'package:statball/app/providers/global/schools_provider.dart';
-import 'package:statball/domain/index.dart' show School;
+import 'package:statball/app/providers/global/teams_provider.dart';
+import 'package:statball/domain/index.dart' show School, Team;
 
-import 'widgets/school_list_tile.dart';
+import 'widgets/team_list_tile.dart';
 
 // ════════════════════════════════════════════════════════════════════════════
-//  SCHOOLS SCREEN — listado del catálogo de escuelas (super_scout).
-//  Responsive: en >= 720px usamos grid de 2 columnas para aprovechar tablet.
+//  TEAMS SCREEN — catálogo de equipos. Acepta `schoolId` opcional para
+//  pre-filtrar a los equipos de una escuela específica (ej. al venir desde
+//  el form de schools en modo edición).
 // ════════════════════════════════════════════════════════════════════════════
-class SchoolsScreen extends ConsumerStatefulWidget {
-  const SchoolsScreen({super.key});
+class TeamsScreen extends ConsumerStatefulWidget {
+  final int? schoolFilter;
+  const TeamsScreen({super.key, this.schoolFilter});
 
   @override
-  ConsumerState<SchoolsScreen> createState() => _SchoolsScreenState();
+  ConsumerState<TeamsScreen> createState() => _TeamsScreenState();
 }
 
-class _SchoolsScreenState extends ConsumerState<SchoolsScreen> {
+class _TeamsScreenState extends ConsumerState<TeamsScreen> {
   final _searchCtrl = TextEditingController();
   String _query = '';
+  int? _schoolFilter;
+
+  @override
+  void initState() {
+    super.initState();
+    _schoolFilter = widget.schoolFilter;
+  }
 
   @override
   void dispose() {
@@ -31,6 +41,7 @@ class _SchoolsScreenState extends ConsumerState<SchoolsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final asyncTeams = ref.watch(teamsProvider);
     final asyncSchools = ref.watch(schoolsProvider);
 
     return Scaffold(
@@ -41,7 +52,7 @@ class _SchoolsScreenState extends ConsumerState<SchoolsScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
         title: const Text(
-          'Escuelas',
+          'Equipos',
           style: TextStyle(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.w700,
@@ -50,31 +61,22 @@ class _SchoolsScreenState extends ConsumerState<SchoolsScreen> {
         ),
         actions: [
           IconButton(
-            tooltip: 'Equipos',
-            icon: const Icon(Icons.groups_outlined),
-            onPressed: () => const TeamsRoute().push<void>(context),
-          ),
-          IconButton(
-            tooltip: 'Directores',
-            icon: const Icon(Icons.badge_outlined),
-            onPressed: () => const SchoolPrincipalsRoute().push<void>(context),
-          ),
-          IconButton(
             tooltip: 'Recargar',
             icon: const Icon(Icons.refresh_rounded),
-            onPressed: asyncSchools.isLoading
+            onPressed: asyncTeams.isLoading
                 ? null
-                : () => ref.read(schoolsProvider.notifier).refresh(),
+                : () => ref.read(teamsProvider.notifier).refresh(),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => const SchoolFormRoute().push<void>(context),
+        onPressed: () =>
+            TeamFormRoute(schoolId: _schoolFilter).push<void>(context),
         backgroundColor: AppColors.accentDark,
         foregroundColor: AppColors.onAccent,
         icon: const Icon(Icons.add_rounded),
         label: const Text(
-          'Nueva escuela',
+          'Nuevo equipo',
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
@@ -85,22 +87,28 @@ class _SchoolsScreenState extends ConsumerState<SchoolsScreen> {
               controller: _searchCtrl,
               onChanged: (v) => setState(() => _query = v.trim().toLowerCase()),
             ),
+            _SchoolFilterBar(
+              selectedSchoolId: _schoolFilter,
+              schoolsAsync: asyncSchools,
+              onChanged: (id) => setState(() => _schoolFilter = id),
+            ),
             Expanded(
-              child: asyncSchools.when(
+              child: asyncTeams.when(
                 loading: () => const Center(
                   child: CircularProgressIndicator(color: AppColors.accentDark),
                 ),
                 error: (e, _) => _ErrorView(
                   message: e.toString(),
-                  onRetry: () => ref.read(schoolsProvider.notifier).refresh(),
+                  onRetry: () => ref.read(teamsProvider.notifier).refresh(),
                 ),
-                data: (schools) {
-                  final filtered = _filter(schools);
-                  if (schools.isEmpty) return const _EmptyView();
-                  if (filtered.isEmpty) {
-                    return const _NoMatchView();
-                  }
-                  return _SchoolsList(schools: filtered);
+                data: (teams) {
+                  final filtered = _filter(teams);
+                  if (teams.isEmpty) return const _EmptyView();
+                  if (filtered.isEmpty) return const _NoMatchView();
+                  return _TeamsList(
+                    teams: filtered,
+                    schools: asyncSchools.value ?? const <School>[],
+                  );
                 },
               ),
             ),
@@ -110,52 +118,62 @@ class _SchoolsScreenState extends ConsumerState<SchoolsScreen> {
     );
   }
 
-  List<School> _filter(List<School> all) {
-    if (_query.isEmpty) return all;
-    return all.where((s) {
-      final hay = [
-        s.name,
-        s.city ?? '',
-        s.state ?? '',
-        s.country ?? '',
-      ].join(' ').toLowerCase();
-      return hay.contains(_query);
-    }).toList();
+  List<Team> _filter(List<Team> all) {
+    Iterable<Team> out = all;
+    if (_schoolFilter != null) {
+      out = out.where((t) => t.schoolId == _schoolFilter);
+    }
+    if (_query.isNotEmpty) {
+      out = out.where((t) {
+        final hay = [t.name, t.category, t.coachName].join(' ').toLowerCase();
+        return hay.contains(_query);
+      });
+    }
+    return out.toList();
   }
 }
 
-class _SchoolsList extends ConsumerWidget {
+class _TeamsList extends ConsumerWidget {
+  final List<Team> teams;
   final List<School> schools;
-  const _SchoolsList({required this.schools});
+  const _TeamsList({required this.teams, required this.schools});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final width = MediaQuery.of(context).size.width;
     final isWide = width >= 720;
     final bottomGap = MediaQuery.of(context).padding.bottom + 96;
+    // Index para resolver nombre de escuela en O(1)
+    final schoolNames = {for (final s in schools) s.id: s.name};
 
     return RefreshIndicator(
       color: AppColors.accentDark,
-      onRefresh: () => ref.read(schoolsProvider.notifier).refresh(),
+      onRefresh: () => ref.read(teamsProvider.notifier).refresh(),
       child: isWide
           ? GridView.builder(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.fromLTRB(20, 12, 20, bottomGap),
               gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: 420,
-                mainAxisExtent: 96,
+                maxCrossAxisExtent: 460,
+                mainAxisExtent: 110,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
               ),
-              itemCount: schools.length,
-              itemBuilder: (_, i) => SchoolListTile(school: schools[i]),
+              itemCount: teams.length,
+              itemBuilder: (_, i) => TeamListTile(
+                team: teams[i],
+                schoolName: schoolNames[teams[i].schoolId],
+              ),
             )
           : ListView.separated(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.fromLTRB(16, 12, 16, bottomGap),
-              itemCount: schools.length,
+              itemCount: teams.length,
               separatorBuilder: (_, _) => const SizedBox(height: 8),
-              itemBuilder: (_, i) => SchoolListTile(school: schools[i]),
+              itemBuilder: (_, i) => TeamListTile(
+                team: teams[i],
+                schoolName: schoolNames[teams[i].schoolId],
+              ),
             ),
     );
   }
@@ -169,13 +187,13 @@ class _SearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
       child: TextField(
         controller: controller,
         onChanged: onChanged,
         style: const TextStyle(color: AppColors.textPrimary),
         decoration: InputDecoration(
-          hintText: 'Buscar por nombre o ubicación...',
+          hintText: 'Buscar por nombre, categoría o entrenador...',
           hintStyle: const TextStyle(color: AppColors.textMuted),
           prefixIcon: const Icon(
             Icons.search_rounded,
@@ -205,6 +223,89 @@ class _SearchBar extends StatelessWidget {
   }
 }
 
+// Chip horizontal scrollable de escuelas + chip "Todas" para limpiar el filtro.
+class _SchoolFilterBar extends StatelessWidget {
+  final int? selectedSchoolId;
+  final AsyncValue<List<School>> schoolsAsync;
+  final ValueChanged<int?> onChanged;
+
+  const _SchoolFilterBar({
+    required this.selectedSchoolId,
+    required this.schoolsAsync,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final schools = schoolsAsync.value ?? const <School>[];
+    if (schools.isEmpty) return const SizedBox.shrink();
+
+    return SizedBox(
+      height: 44,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+        children: [
+          _FilterChip(
+            label: 'Todas',
+            selected: selectedSchoolId == null,
+            onTap: () => onChanged(null),
+          ),
+          for (final s in schools)
+            if (s.id != null) ...[
+              const SizedBox(width: 8),
+              _FilterChip(
+                label: s.name,
+                selected: selectedSchoolId == s.id,
+                onTap: () => onChanged(s.id),
+              ),
+            ],
+        ],
+      ),
+    );
+  }
+}
+
+class _FilterChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  const _FilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected ? AppColors.accentDark : AppColors.card,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: selected ? AppColors.accentDark : AppColors.cardBorder,
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: selected ? AppColors.onAccent : AppColors.textPrimary,
+              fontSize: 12.5,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _EmptyView extends StatelessWidget {
   const _EmptyView();
 
@@ -223,14 +324,14 @@ class _EmptyView extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.account_balance_rounded,
+                Icons.groups_rounded,
                 color: AppColors.accentDark,
                 size: 48,
               ),
             ),
             const SizedBox(height: 18),
             const Text(
-              'Aún no hay escuelas',
+              'Aún no hay equipos',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -239,7 +340,7 @@ class _EmptyView extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             const Text(
-              'Crea la primera con el botón “Nueva escuela”.',
+              'Crea el primero con el botón “Nuevo equipo”.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 13.5, color: AppColors.textMuted),
             ),
@@ -268,7 +369,7 @@ class _NoMatchView extends StatelessWidget {
             ),
             SizedBox(height: 12),
             Text(
-              'Sin resultados para tu búsqueda',
+              'Sin resultados para el filtro aplicado',
               style: TextStyle(color: AppColors.textMuted, fontSize: 13.5),
             ),
           ],

@@ -6,3 +6,5 @@ export 'schools/schools_screen.dart';
 export 'schools/school_form_screen.dart';
 export 'school_principals/school_principals_screen.dart';
 export 'school_principals/school_principal_form_screen.dart';
+export 'teams/teams_screen.dart';
+export 'teams/team_form_screen.dart';

@@ -95,3 +95,33 @@ class SchoolPrincipalFormRoute extends RelativeGoRouteData
   Widget build(BuildContext context, GoRouterState state) =>
       SchoolPrincipalFormScreen(principalId: id);
 }
+
+@TypedGoRoute<TeamsRoute>(
+  path: '/teams',
+  name: 'teams',
+  routes: <TypedRelativeGoRoute<RelativeGoRouteData>>[
+    TypedRelativeGoRoute<TeamFormRoute>(path: 'form'),
+  ],
+)
+class TeamsRoute extends GoRouteData with $TeamsRoute {
+  // schoolFilter opcional: filtra el listado por escuela al abrir.
+  const TeamsRoute({this.schoolFilter});
+
+  final int? schoolFilter;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      TeamsScreen(schoolFilter: schoolFilter);
+}
+
+class TeamFormRoute extends RelativeGoRouteData with $TeamFormRoute {
+  // `id` para edición; `schoolId` para pre-seleccionar escuela en creación.
+  const TeamFormRoute({this.id, this.schoolId});
+
+  final String? id;
+  final int? schoolId;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      TeamFormScreen(teamId: id, presetSchoolId: schoolId);
+}

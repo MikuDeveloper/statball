@@ -13,6 +13,7 @@ List<RouteBase> get $appRoutes => [
   $homeRoute,
   $schoolsRoute,
   $schoolPrincipalsRoute,
+  $teamsRoute,
 ];
 
 RouteBase get $rootRoute =>
@@ -245,6 +246,92 @@ mixin $SchoolPrincipalFormRoute on RelativeGoRouteData {
   String get subLocation => RelativeGoRouteData.$location(
     'form',
     queryParams: {if (_self.id != null) 'id': _self.id!.toString()},
+  );
+
+  @override
+  String get relativeLocation => './$subLocation';
+
+  @override
+  void goRelative(BuildContext context) => context.go(relativeLocation);
+
+  @override
+  Future<T?> pushRelative<T>(BuildContext context) =>
+      context.push<T>(relativeLocation);
+
+  @override
+  void pushReplacementRelative(BuildContext context) =>
+      context.pushReplacement(relativeLocation);
+
+  @override
+  void replaceRelative(BuildContext context) =>
+      context.replace(relativeLocation);
+}
+
+RouteBase get $teamsRoute => GoRouteData.$route(
+  path: '/teams',
+  name: 'teams',
+  factory: $TeamsRoute._fromState,
+  routes: [
+    RelativeGoRouteData.$route(
+      path: 'form',
+      factory: $TeamFormRoute._fromState,
+    ),
+  ],
+);
+
+mixin $TeamsRoute on GoRouteData {
+  static TeamsRoute _fromState(GoRouterState state) => TeamsRoute(
+    schoolFilter: _$convertMapValue(
+      'school-filter',
+      state.uri.queryParameters,
+      int.tryParse,
+    ),
+  );
+
+  TeamsRoute get _self => this as TeamsRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/teams',
+    queryParams: {
+      if (_self.schoolFilter != null)
+        'school-filter': _self.schoolFilter!.toString(),
+    },
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $TeamFormRoute on RelativeGoRouteData {
+  static TeamFormRoute _fromState(GoRouterState state) => TeamFormRoute(
+    id: state.uri.queryParameters['id'],
+    schoolId: _$convertMapValue(
+      'school-id',
+      state.uri.queryParameters,
+      int.tryParse,
+    ),
+  );
+
+  TeamFormRoute get _self => this as TeamFormRoute;
+
+  @override
+  String get subLocation => RelativeGoRouteData.$location(
+    'form',
+    queryParams: {
+      if (_self.id != null) 'id': _self.id,
+      if (_self.schoolId != null) 'school-id': _self.schoolId!.toString(),
+    },
   );
 
   @override

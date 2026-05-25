@@ -9,3 +9,7 @@ export 'use_cases/school_use_case.dart';
 export 'models/school_principal/repository/school_principal_repository.dart';
 export 'models/school_principal/school_principal.dart';
 export 'use_cases/school_principal_use_case.dart';
+
+export 'models/team/repository/team_repository.dart';
+export 'models/team/team.dart';
+export 'use_cases/team_use_case.dart';
