@@ -3,23 +3,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:statball/app/config/routes/routes.dart';
 import 'package:statball/app/config/themes/app_colors.dart';
-import 'package:statball/app/providers/global/schools_provider.dart';
-import 'package:statball/domain/index.dart' show School;
+import 'package:statball/app/providers/global/scouts_provider.dart';
+import 'package:statball/domain/index.dart' show Scout;
 
-import 'widgets/school_list_tile.dart';
+import 'widgets/scout_list_tile.dart';
 
 // ════════════════════════════════════════════════════════════════════════════
-//  SCHOOLS SCREEN — listado del catálogo de escuelas (super_scout).
-//  Responsive: en >= 720px usamos grid de 2 columnas para aprovechar tablet.
+//  SCOUTS SCREEN — catálogo de scouts (visoreadores). Solo super_scout puede
+//  crear/editar/eliminar; los demás roles ven la lista para asignaciones.
 // ════════════════════════════════════════════════════════════════════════════
-class SchoolsScreen extends ConsumerStatefulWidget {
-  const SchoolsScreen({super.key});
+class ScoutsScreen extends ConsumerStatefulWidget {
+  const ScoutsScreen({super.key});
 
   @override
-  ConsumerState<SchoolsScreen> createState() => _SchoolsScreenState();
+  ConsumerState<ScoutsScreen> createState() => _ScoutsScreenState();
 }
 
-class _SchoolsScreenState extends ConsumerState<SchoolsScreen> {
+class _ScoutsScreenState extends ConsumerState<ScoutsScreen> {
   final _searchCtrl = TextEditingController();
   String _query = '';
 
@@ -31,7 +31,7 @@ class _SchoolsScreenState extends ConsumerState<SchoolsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final asyncSchools = ref.watch(schoolsProvider);
+    final async = ref.watch(scoutsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.bgLight,
@@ -41,7 +41,7 @@ class _SchoolsScreenState extends ConsumerState<SchoolsScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
         title: const Text(
-          'Escuelas',
+          'Scouts',
           style: TextStyle(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.w700,
@@ -50,36 +50,21 @@ class _SchoolsScreenState extends ConsumerState<SchoolsScreen> {
         ),
         actions: [
           IconButton(
-            tooltip: 'Equipos',
-            icon: const Icon(Icons.groups_outlined),
-            onPressed: () => const TeamsRoute().push<void>(context),
-          ),
-          IconButton(
-            tooltip: 'Directores',
-            icon: const Icon(Icons.badge_outlined),
-            onPressed: () => const SchoolPrincipalsRoute().push<void>(context),
-          ),
-          IconButton(
-            tooltip: 'Scouts',
-            icon: const Icon(Icons.assignment_ind_outlined),
-            onPressed: () => const ScoutsRoute().push<void>(context),
-          ),
-          IconButton(
             tooltip: 'Recargar',
             icon: const Icon(Icons.refresh_rounded),
-            onPressed: asyncSchools.isLoading
+            onPressed: async.isLoading
                 ? null
-                : () => ref.read(schoolsProvider.notifier).refresh(),
+                : () => ref.read(scoutsProvider.notifier).refresh(),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => const SchoolFormRoute().push<void>(context),
+        onPressed: () => const ScoutFormRoute().push<void>(context),
         backgroundColor: AppColors.accentDark,
         foregroundColor: AppColors.onAccent,
         icon: const Icon(Icons.add_rounded),
         label: const Text(
-          'Nueva escuela',
+          'Nuevo scout',
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
@@ -91,21 +76,19 @@ class _SchoolsScreenState extends ConsumerState<SchoolsScreen> {
               onChanged: (v) => setState(() => _query = v.trim().toLowerCase()),
             ),
             Expanded(
-              child: asyncSchools.when(
+              child: async.when(
                 loading: () => const Center(
                   child: CircularProgressIndicator(color: AppColors.accentDark),
                 ),
                 error: (e, _) => _ErrorView(
                   message: e.toString(),
-                  onRetry: () => ref.read(schoolsProvider.notifier).refresh(),
+                  onRetry: () => ref.read(scoutsProvider.notifier).refresh(),
                 ),
-                data: (schools) {
-                  final filtered = _filter(schools);
-                  if (schools.isEmpty) return const _EmptyView();
-                  if (filtered.isEmpty) {
-                    return const _NoMatchView();
-                  }
-                  return _SchoolsList(schools: filtered);
+                data: (scouts) {
+                  final filtered = _filter(scouts);
+                  if (scouts.isEmpty) return const _EmptyView();
+                  if (filtered.isEmpty) return const _NoMatchView();
+                  return _ScoutsList(scouts: filtered);
                 },
               ),
             ),
@@ -115,23 +98,18 @@ class _SchoolsScreenState extends ConsumerState<SchoolsScreen> {
     );
   }
 
-  List<School> _filter(List<School> all) {
+  List<Scout> _filter(List<Scout> all) {
     if (_query.isEmpty) return all;
     return all.where((s) {
-      final hay = [
-        s.name,
-        s.city ?? '',
-        s.state ?? '',
-        s.country ?? '',
-      ].join(' ').toLowerCase();
+      final hay = [s.name, s.lastname].join(' ').toLowerCase();
       return hay.contains(_query);
     }).toList();
   }
 }
 
-class _SchoolsList extends ConsumerWidget {
-  final List<School> schools;
-  const _SchoolsList({required this.schools});
+class _ScoutsList extends ConsumerWidget {
+  final List<Scout> scouts;
+  const _ScoutsList({required this.scouts});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -141,26 +119,26 @@ class _SchoolsList extends ConsumerWidget {
 
     return RefreshIndicator(
       color: AppColors.accentDark,
-      onRefresh: () => ref.read(schoolsProvider.notifier).refresh(),
+      onRefresh: () => ref.read(scoutsProvider.notifier).refresh(),
       child: isWide
           ? GridView.builder(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.fromLTRB(20, 12, 20, bottomGap),
               gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                 maxCrossAxisExtent: 420,
-                mainAxisExtent: 96,
+                mainAxisExtent: 110,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
               ),
-              itemCount: schools.length,
-              itemBuilder: (_, i) => SchoolListTile(school: schools[i]),
+              itemCount: scouts.length,
+              itemBuilder: (_, i) => ScoutListTile(scout: scouts[i]),
             )
           : ListView.separated(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.fromLTRB(16, 12, 16, bottomGap),
-              itemCount: schools.length,
+              itemCount: scouts.length,
               separatorBuilder: (_, _) => const SizedBox(height: 8),
-              itemBuilder: (_, i) => SchoolListTile(school: schools[i]),
+              itemBuilder: (_, i) => ScoutListTile(scout: scouts[i]),
             ),
     );
   }
@@ -180,7 +158,7 @@ class _SearchBar extends StatelessWidget {
         onChanged: onChanged,
         style: const TextStyle(color: AppColors.textPrimary),
         decoration: InputDecoration(
-          hintText: 'Buscar por nombre o ubicación...',
+          hintText: 'Buscar por nombre o apellido...',
           hintStyle: const TextStyle(color: AppColors.textMuted),
           prefixIcon: const Icon(
             Icons.search_rounded,
@@ -224,18 +202,18 @@ class _EmptyView extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(22),
               decoration: const BoxDecoration(
-                color: AppColors.accentSurface,
+                color: AppColors.warningSurface,
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.account_balance_rounded,
-                color: AppColors.accentDark,
+                Icons.assignment_ind_rounded,
+                color: AppColors.warning,
                 size: 48,
               ),
             ),
             const SizedBox(height: 18),
             const Text(
-              'Aún no hay escuelas',
+              'Aún no hay scouts',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -244,7 +222,7 @@ class _EmptyView extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             const Text(
-              'Crea la primera con el botón “Nueva escuela”.',
+              'Registra el primero con el botón “Nuevo scout”.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 13.5, color: AppColors.textMuted),
             ),

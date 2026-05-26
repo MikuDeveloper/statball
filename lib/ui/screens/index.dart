@@ -10,3 +10,5 @@ export 'teams/teams_screen.dart';
 export 'teams/team_form_screen.dart';
 export 'players/players_screen.dart';
 export 'players/player_form_screen.dart';
+export 'scouts/scouts_screen.dart';
+export 'scouts/scout_form_screen.dart';

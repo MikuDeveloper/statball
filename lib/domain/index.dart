@@ -17,3 +17,7 @@ export 'use_cases/team_use_case.dart';
 export 'models/player/repository/player_repository.dart';
 export 'models/player/player.dart';
 export 'use_cases/player_use_case.dart';
+
+export 'models/scout/repository/scout_repository.dart';
+export 'models/scout/scout.dart';
+export 'use_cases/scout_use_case.dart';

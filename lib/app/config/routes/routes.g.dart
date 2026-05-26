@@ -15,6 +15,7 @@ List<RouteBase> get $appRoutes => [
   $schoolPrincipalsRoute,
   $teamsRoute,
   $playersRoute,
+  $scoutsRoute,
 ];
 
 RouteBase get $rootRoute =>
@@ -409,6 +410,69 @@ mixin $PlayerFormRoute on RelativeGoRouteData {
       if (_self.id != null) 'id': _self.id,
       if (_self.teamId != null) 'team-id': _self.teamId,
     },
+  );
+
+  @override
+  String get relativeLocation => './$subLocation';
+
+  @override
+  void goRelative(BuildContext context) => context.go(relativeLocation);
+
+  @override
+  Future<T?> pushRelative<T>(BuildContext context) =>
+      context.push<T>(relativeLocation);
+
+  @override
+  void pushReplacementRelative(BuildContext context) =>
+      context.pushReplacement(relativeLocation);
+
+  @override
+  void replaceRelative(BuildContext context) =>
+      context.replace(relativeLocation);
+}
+
+RouteBase get $scoutsRoute => GoRouteData.$route(
+  path: '/scouts',
+  name: 'scouts',
+  factory: $ScoutsRoute._fromState,
+  routes: [
+    RelativeGoRouteData.$route(
+      path: 'form',
+      factory: $ScoutFormRoute._fromState,
+    ),
+  ],
+);
+
+mixin $ScoutsRoute on GoRouteData {
+  static ScoutsRoute _fromState(GoRouterState state) => const ScoutsRoute();
+
+  @override
+  String get location => GoRouteData.$location('/scouts');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $ScoutFormRoute on RelativeGoRouteData {
+  static ScoutFormRoute _fromState(GoRouterState state) =>
+      ScoutFormRoute(id: state.uri.queryParameters['id']);
+
+  ScoutFormRoute get _self => this as ScoutFormRoute;
+
+  @override
+  String get subLocation => RelativeGoRouteData.$location(
+    'form',
+    queryParams: {if (_self.id != null) 'id': _self.id},
   );
 
   @override

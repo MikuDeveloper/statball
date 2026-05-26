@@ -155,3 +155,28 @@ class PlayerFormRoute extends RelativeGoRouteData with $PlayerFormRoute {
   Widget build(BuildContext context, GoRouterState state) =>
       PlayerFormScreen(playerId: id, presetTeamId: teamId);
 }
+
+@TypedGoRoute<ScoutsRoute>(
+  path: '/scouts',
+  name: 'scouts',
+  routes: <TypedRelativeGoRoute<RelativeGoRouteData>>[
+    TypedRelativeGoRoute<ScoutFormRoute>(path: 'form'),
+  ],
+)
+class ScoutsRoute extends GoRouteData with $ScoutsRoute {
+  const ScoutsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const ScoutsScreen();
+}
+
+class ScoutFormRoute extends RelativeGoRouteData with $ScoutFormRoute {
+  const ScoutFormRoute({this.id});
+
+  final String? id;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      ScoutFormScreen(scoutId: id);
+}
