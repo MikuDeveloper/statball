@@ -46,18 +46,20 @@ class _PlayerFormScreenState extends ConsumerState<PlayerFormScreen>
       final player = ref.read(playersProvider.notifier).byId(widget.playerId!);
       if (player == null) return;
       _existing = player;
+      // Text fields se inicializan con '' (no null) para que el TextField
+      // muestre el campo vacío; numéricos y fecha se pasan como están.
       form.patchValue({
         'firstname': player.firstname,
         'lastname': player.lastname,
         'birthday': player.birthday,
         'height': player.height,
         'weight': player.weight,
-        'notes': player.notes,
+        'notes': player.notes ?? '',
         'preferredFoot': player.preferredFoot,
         'basicForces': player.basicForces,
-        'city': player.city,
-        'country': player.country,
-        'photo': player.photo,
+        'city': player.city ?? '',
+        'country': player.country ?? '',
+        'photo': player.photo ?? '',
         'teamId': player.teamId,
       });
     } else if (widget.presetTeamId != null) {
@@ -83,19 +85,26 @@ class _PlayerFormScreenState extends ConsumerState<PlayerFormScreen>
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
 
+    // Texto vacío del form lo enviamos como null al modelo (luego la API filtra
+    // los nulls del payload con removeWhere para no sobreescribir columnas).
+    String? cleanText(Object? v) {
+      final s = (v as String?)?.trim();
+      return (s == null || s.isEmpty) ? null : s;
+    }
+
     final player = Player(
       id: _existing?.id,
       firstname: (values['firstname'] as String).trim(),
       lastname: (values['lastname'] as String).trim(),
-      birthday: values['birthday'] as DateTime,
-      height: values['height'] as double,
-      weight: values['weight'] as double,
-      notes: (values['notes'] as String? ?? '').trim(),
+      birthday: values['birthday'] as DateTime?,
+      height: values['height'] as double?,
+      weight: values['weight'] as double?,
+      notes: cleanText(values['notes']),
       preferredFoot: values['preferredFoot'] as FootPreference,
       basicForces: values['basicForces'] as bool? ?? false,
-      city: (values['city'] as String).trim(),
-      country: (values['country'] as String).trim(),
-      photo: (values['photo'] as String? ?? '').trim(),
+      city: cleanText(values['city']),
+      country: cleanText(values['country']),
+      photo: cleanText(values['photo']),
       teamId: values['teamId'] as String?,
     );
 
@@ -168,27 +177,6 @@ class _PlayerFormScreenState extends ConsumerState<PlayerFormScreen>
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  const _BirthdayField(),
-                  const SizedBox(height: 18),
-                  const _SectionTitle('Físico'),
-                  const SizedBox(height: 12),
-                  const _ResponsiveRow(
-                    children: [
-                      _NumericField(
-                        name: 'height',
-                        label: 'ALTURA (m) *',
-                        hint: 'Ej. 1.78',
-                      ),
-                      _NumericField(
-                        name: 'weight',
-                        label: 'PESO (kg) *',
-                        hint: 'Ej. 72.5',
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  const _BasicForcesSwitch(),
                   const SizedBox(height: 18),
 
                   const _SectionTitle('Perfil deportivo'),
@@ -196,41 +184,18 @@ class _PlayerFormScreenState extends ConsumerState<PlayerFormScreen>
                   const SbFieldLabel(text: 'PIE PREFERIDO *'),
                   const SizedBox(height: 8),
                   const _FootPicker(),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 14),
+                  const _BasicForcesSwitch(),
+                  const SizedBox(height: 18),
 
                   const _SectionTitle('Equipo'),
                   const SizedBox(height: 12),
                   const _TeamPicker(),
                   const SizedBox(height: 18),
 
-                  const _SectionTitle('Ubicación'),
-                  const SizedBox(height: 12),
-                  const _ResponsiveRow(
-                    children: [
-                      _LabeledField(
-                        name: 'city',
-                        label: 'CIUDAD *',
-                        hint: 'Ciudad',
-                      ),
-                      _LabeledField(
-                        name: 'country',
-                        label: 'PAÍS *',
-                        hint: 'País',
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
-
-                  const _SectionTitle('Extras'),
-                  const SizedBox(height: 12),
-                  const _LabeledField(
-                    name: 'photo',
-                    label: 'URL DE FOTO',
-                    hint: 'https://...',
-                    keyboard: TextInputType.url,
-                  ),
-                  const SizedBox(height: 12),
-                  const _NotesField(),
+                  // Todo lo demás es opcional y se puede completar después.
+                  // Lo colapsamos para no abrumar al usuario en alta rápida.
+                  const _OptionalFieldsSection(),
                   const SizedBox(height: 32),
 
                   ReactiveFormConsumer(
@@ -466,7 +431,7 @@ class _BirthdayField extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SbFieldLabel(text: 'FECHA DE NACIMIENTO *'),
+            const SbFieldLabel(text: 'FECHA DE NACIMIENTO'),
             const SizedBox(height: 6),
             Material(
               color: AppColors.card,
@@ -516,12 +481,25 @@ class _BirthdayField extends StatelessWidget {
                 ),
               ),
             ),
-            if (control.touched && control.invalid)
-              const Padding(
-                padding: EdgeInsets.only(top: 6, left: 4),
-                child: Text(
-                  'Requerido',
-                  style: TextStyle(color: AppColors.error, fontSize: 12),
+            if (value != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 6, left: 4),
+                child: TextButton.icon(
+                  onPressed: () {
+                    control.value = null;
+                    control.markAsTouched();
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.textMuted,
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(0, 24),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  icon: const Icon(Icons.clear_rounded, size: 14),
+                  label: const Text(
+                    'Quitar fecha',
+                    style: TextStyle(fontSize: 12),
+                  ),
                 ),
               ),
           ],
@@ -875,6 +853,93 @@ class _PickerSkeleton extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─── _OptionalFieldsSection ─────────────────────────────────────────────────
+// Agrupa todo lo que no es obligatorio en un ExpansionTile colapsado para
+// que el alta rápida no se sienta abrumadora. El usuario puede completar
+// estos datos después editando al jugador.
+class _OptionalFieldsSection extends StatelessWidget {
+  const _OptionalFieldsSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Theme(
+      // Quita la línea separadora gris del ExpansionTile (estética)
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.cardBorder),
+        ),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+          childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 18),
+          collapsedIconColor: AppColors.textMuted,
+          iconColor: AppColors.accentDark,
+          title: const Text(
+            'Datos opcionales',
+            style: TextStyle(
+              fontSize: 14.5,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textPrimary,
+              letterSpacing: -0.2,
+            ),
+          ),
+          subtitle: const Padding(
+            padding: EdgeInsets.only(top: 2),
+            child: Text(
+              'Puedes completarlos después',
+              style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+            ),
+          ),
+          children: const [
+            _SectionTitle('Físico'),
+            SizedBox(height: 10),
+            _BirthdayField(),
+            SizedBox(height: 12),
+            _ResponsiveRow(
+              children: [
+                _NumericField(
+                  name: 'height',
+                  label: 'ALTURA (m)',
+                  hint: 'Ej. 1.78',
+                ),
+                _NumericField(
+                  name: 'weight',
+                  label: 'PESO (kg)',
+                  hint: 'Ej. 72.5',
+                ),
+              ],
+            ),
+            SizedBox(height: 18),
+
+            _SectionTitle('Ubicación'),
+            SizedBox(height: 10),
+            _ResponsiveRow(
+              children: [
+                _LabeledField(name: 'city', label: 'CIUDAD', hint: 'Ciudad'),
+                _LabeledField(name: 'country', label: 'PAÍS', hint: 'País'),
+              ],
+            ),
+            SizedBox(height: 18),
+
+            _SectionTitle('Extras'),
+            SizedBox(height: 10),
+            _LabeledField(
+              name: 'photo',
+              label: 'URL DE FOTO',
+              hint: 'https://...',
+              keyboard: TextInputType.url,
+            ),
+            SizedBox(height: 12),
+            _NotesField(),
+          ],
+        ),
       ),
     );
   }

@@ -9,10 +9,16 @@ part 'player.g.dart';
 String _footToJson(FootPreference f) => f.dbValue;
 FootPreference _footFromJson(String raw) => FootPreference.fromDb(raw);
 
-// Postgres devuelve `numeric` como String para no perder precisión. Convertimos
-// a double aceptando tanto String como num por si la lib serializa distinto.
-double _numFromJson(Object raw) =>
-    raw is String ? double.parse(raw) : (raw as num).toDouble();
+// Postgres devuelve `numeric` como String para no perder precisión.
+// Aceptamos String, num o null (la columna es ahora opcional).
+double? _numFromJson(Object? raw) {
+  if (raw == null) return null;
+  if (raw is String) return double.tryParse(raw);
+  if (raw is num) return raw.toDouble();
+  return null;
+}
+
+double? _numToJson(double? v) => v;
 
 @freezed
 abstract class Player with _$Player {
@@ -21,31 +27,24 @@ abstract class Player with _$Player {
     String? id,
     required String firstname,
     required String lastname,
-    required DateTime birthday,
-    @JsonKey(fromJson: _numFromJson) required double height,
-    @JsonKey(fromJson: _numFromJson) required double weight,
-    required String notes,
+    DateTime? birthday,
+    @JsonKey(fromJson: _numFromJson, toJson: _numToJson) double? height,
+    @JsonKey(fromJson: _numFromJson, toJson: _numToJson) double? weight,
+    String? notes,
     @JsonKey(fromJson: _footFromJson, toJson: _footToJson)
     required FootPreference preferredFoot,
     required bool basicForces,
-    required String city,
-    required String country,
-    required String photo,
+    String? city,
+    String? country,
+    String? photo,
     String? teamId,
   }) = _Player;
 
-  factory Player.empty() => _Player(
+  factory Player.empty() => const _Player(
     firstname: '',
     lastname: '',
-    birthday: DateTime.now(),
-    height: 0,
-    weight: 0,
-    notes: '',
     preferredFoot: FootPreference.derecha,
     basicForces: false,
-    city: '',
-    country: '',
-    photo: '',
   );
 
   factory Player.fromJson(Map<String, dynamic> json) => _$PlayerFromJson(json);
@@ -60,13 +59,14 @@ extension PlayerX on Player {
     return '$fn $ln';
   }
 
-  // Edad calculada a partir de birthday (años completos).
-  int get age {
+  // Edad calculada en años completos. Null si birthday no está registrado.
+  int? get age {
+    final bd = birthday;
+    if (bd == null) return null;
     final now = DateTime.now();
-    var years = now.year - birthday.year;
+    var years = now.year - bd.year;
     final hasHadBirthday =
-        (now.month > birthday.month) ||
-        (now.month == birthday.month && now.day >= birthday.day);
+        (now.month > bd.month) || (now.month == bd.month && now.day >= bd.day);
     if (!hasHadBirthday) years -= 1;
     return years;
   }

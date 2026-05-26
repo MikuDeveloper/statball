@@ -5,8 +5,8 @@ import 'package:statball/app/global/enums.dart' show FootPreference;
 
 part 'player_form_provider.g.dart';
 
-// Form para crear / editar un jugador. El schema marca casi todo NOT NULL;
-// solo teamId es opcional. preferredFoot arranca en Derecha (más común).
+// Form para crear / editar un jugador. Solo nombre, apellido, pie preferido y
+// "fuerzas básicas" son obligatorios; el resto se puede completar después.
 @riverpod
 ({String key, FormGroup form}) playerForm(Ref ref) {
   return (
@@ -20,17 +20,16 @@ part 'player_form_provider.g.dart';
         value: '',
         validators: [Validators.required],
       ),
-      'birthday': FormControl<DateTime>(
-        value: null,
-        validators: [Validators.required],
-      ),
+      'birthday': FormControl<DateTime>(value: null),
       'height': FormControl<double>(
         value: null,
-        validators: [Validators.required, Validators.min(0.5)],
+        // Si el usuario captura algo, debe ser razonable; pero el campo en sí
+        // es opcional. min se evalúa solo cuando hay valor.
+        validators: [Validators.min(0.5)],
       ),
       'weight': FormControl<double>(
         value: null,
-        validators: [Validators.required, Validators.min(1)],
+        validators: [Validators.min(1)],
       ),
       'notes': FormControl<String>(value: ''),
       'preferredFoot': FormControl<FootPreference>(
@@ -38,11 +37,8 @@ part 'player_form_provider.g.dart';
         validators: [Validators.required],
       ),
       'basicForces': FormControl<bool>(value: false),
-      'city': FormControl<String>(value: '', validators: [Validators.required]),
-      'country': FormControl<String>(
-        value: '',
-        validators: [Validators.required],
-      ),
+      'city': FormControl<String>(value: ''),
+      'country': FormControl<String>(value: ''),
       'photo': FormControl<String>(value: ''),
       'teamId': FormControl<String>(value: null),
     }),

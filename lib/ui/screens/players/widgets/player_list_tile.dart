@@ -71,8 +71,11 @@ class PlayerListTile extends ConsumerWidget with SnackbarsMixin {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        _AgeChip(age: player.age),
+                        // El chip de edad solo aparece si hay birthday registrado
+                        if (player.age != null) ...[
+                          const SizedBox(width: 8),
+                          _AgeChip(age: player.age!),
+                        ],
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -192,7 +195,8 @@ class PlayerListTile extends ConsumerWidget with SnackbarsMixin {
   }
 }
 
-// Avatar: si hay URL de photo, intenta cargarla; cae a iniciales si falla o no hay.
+// Avatar: si hay URL de photo, intenta cargarla; cae a iniciales si falla,
+// si no hay foto o si el valor es null/empty.
 class _Avatar extends StatelessWidget {
   final Player player;
   final String fallbackInitials;
@@ -200,7 +204,8 @@ class _Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasPhoto = player.photo.trim().isNotEmpty;
+    final photoUrl = player.photo?.trim() ?? '';
+    final hasPhoto = photoUrl.isNotEmpty;
     return Container(
       width: 48,
       height: 48,
@@ -211,7 +216,7 @@ class _Avatar extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: hasPhoto
           ? Image.network(
-              player.photo,
+              photoUrl,
               fit: BoxFit.cover,
               errorBuilder: (_, _, _) => _initialsFallback(),
               loadingBuilder: (_, child, progress) =>

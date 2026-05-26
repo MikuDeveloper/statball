@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Player {
 
- String? get id; String get firstname; String get lastname; DateTime get birthday;@JsonKey(fromJson: _numFromJson) double get height;@JsonKey(fromJson: _numFromJson) double get weight; String get notes;@JsonKey(fromJson: _footFromJson, toJson: _footToJson) FootPreference get preferredFoot; bool get basicForces; String get city; String get country; String get photo; String? get teamId;
+ String? get id; String get firstname; String get lastname; DateTime? get birthday;@JsonKey(fromJson: _numFromJson, toJson: _numToJson) double? get height;@JsonKey(fromJson: _numFromJson, toJson: _numToJson) double? get weight; String? get notes;@JsonKey(fromJson: _footFromJson, toJson: _footToJson) FootPreference get preferredFoot; bool get basicForces; String? get city; String? get country; String? get photo; String? get teamId;
 /// Create a copy of Player
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $PlayerCopyWith<$Res>  {
   factory $PlayerCopyWith(Player value, $Res Function(Player) _then) = _$PlayerCopyWithImpl;
 @useResult
 $Res call({
- String? id, String firstname, String lastname, DateTime birthday,@JsonKey(fromJson: _numFromJson) double height,@JsonKey(fromJson: _numFromJson) double weight, String notes,@JsonKey(fromJson: _footFromJson, toJson: _footToJson) FootPreference preferredFoot, bool basicForces, String city, String country, String photo, String? teamId
+ String? id, String firstname, String lastname, DateTime? birthday,@JsonKey(fromJson: _numFromJson, toJson: _numToJson) double? height,@JsonKey(fromJson: _numFromJson, toJson: _numToJson) double? weight, String? notes,@JsonKey(fromJson: _footFromJson, toJson: _footToJson) FootPreference preferredFoot, bool basicForces, String? city, String? country, String? photo, String? teamId
 });
 
 
@@ -65,21 +65,21 @@ class _$PlayerCopyWithImpl<$Res>
 
 /// Create a copy of Player
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? firstname = null,Object? lastname = null,Object? birthday = null,Object? height = null,Object? weight = null,Object? notes = null,Object? preferredFoot = null,Object? basicForces = null,Object? city = null,Object? country = null,Object? photo = null,Object? teamId = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? firstname = null,Object? lastname = null,Object? birthday = freezed,Object? height = freezed,Object? weight = freezed,Object? notes = freezed,Object? preferredFoot = null,Object? basicForces = null,Object? city = freezed,Object? country = freezed,Object? photo = freezed,Object? teamId = freezed,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String?,firstname: null == firstname ? _self.firstname : firstname // ignore: cast_nullable_to_non_nullable
 as String,lastname: null == lastname ? _self.lastname : lastname // ignore: cast_nullable_to_non_nullable
-as String,birthday: null == birthday ? _self.birthday : birthday // ignore: cast_nullable_to_non_nullable
-as DateTime,height: null == height ? _self.height : height // ignore: cast_nullable_to_non_nullable
-as double,weight: null == weight ? _self.weight : weight // ignore: cast_nullable_to_non_nullable
-as double,notes: null == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
-as String,preferredFoot: null == preferredFoot ? _self.preferredFoot : preferredFoot // ignore: cast_nullable_to_non_nullable
+as String,birthday: freezed == birthday ? _self.birthday : birthday // ignore: cast_nullable_to_non_nullable
+as DateTime?,height: freezed == height ? _self.height : height // ignore: cast_nullable_to_non_nullable
+as double?,weight: freezed == weight ? _self.weight : weight // ignore: cast_nullable_to_non_nullable
+as double?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
+as String?,preferredFoot: null == preferredFoot ? _self.preferredFoot : preferredFoot // ignore: cast_nullable_to_non_nullable
 as FootPreference,basicForces: null == basicForces ? _self.basicForces : basicForces // ignore: cast_nullable_to_non_nullable
-as bool,city: null == city ? _self.city : city // ignore: cast_nullable_to_non_nullable
-as String,country: null == country ? _self.country : country // ignore: cast_nullable_to_non_nullable
-as String,photo: null == photo ? _self.photo : photo // ignore: cast_nullable_to_non_nullable
-as String,teamId: freezed == teamId ? _self.teamId : teamId // ignore: cast_nullable_to_non_nullable
+as bool,city: freezed == city ? _self.city : city // ignore: cast_nullable_to_non_nullable
+as String?,country: freezed == country ? _self.country : country // ignore: cast_nullable_to_non_nullable
+as String?,photo: freezed == photo ? _self.photo : photo // ignore: cast_nullable_to_non_nullable
+as String?,teamId: freezed == teamId ? _self.teamId : teamId // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -165,7 +165,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String firstname,  String lastname,  DateTime birthday, @JsonKey(fromJson: _numFromJson)  double height, @JsonKey(fromJson: _numFromJson)  double weight,  String notes, @JsonKey(fromJson: _footFromJson, toJson: _footToJson)  FootPreference preferredFoot,  bool basicForces,  String city,  String country,  String photo,  String? teamId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String firstname,  String lastname,  DateTime? birthday, @JsonKey(fromJson: _numFromJson, toJson: _numToJson)  double? height, @JsonKey(fromJson: _numFromJson, toJson: _numToJson)  double? weight,  String? notes, @JsonKey(fromJson: _footFromJson, toJson: _footToJson)  FootPreference preferredFoot,  bool basicForces,  String? city,  String? country,  String? photo,  String? teamId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Player() when $default != null:
 return $default(_that.id,_that.firstname,_that.lastname,_that.birthday,_that.height,_that.weight,_that.notes,_that.preferredFoot,_that.basicForces,_that.city,_that.country,_that.photo,_that.teamId);case _:
@@ -186,7 +186,7 @@ return $default(_that.id,_that.firstname,_that.lastname,_that.birthday,_that.hei
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String firstname,  String lastname,  DateTime birthday, @JsonKey(fromJson: _numFromJson)  double height, @JsonKey(fromJson: _numFromJson)  double weight,  String notes, @JsonKey(fromJson: _footFromJson, toJson: _footToJson)  FootPreference preferredFoot,  bool basicForces,  String city,  String country,  String photo,  String? teamId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String firstname,  String lastname,  DateTime? birthday, @JsonKey(fromJson: _numFromJson, toJson: _numToJson)  double? height, @JsonKey(fromJson: _numFromJson, toJson: _numToJson)  double? weight,  String? notes, @JsonKey(fromJson: _footFromJson, toJson: _footToJson)  FootPreference preferredFoot,  bool basicForces,  String? city,  String? country,  String? photo,  String? teamId)  $default,) {final _that = this;
 switch (_that) {
 case _Player():
 return $default(_that.id,_that.firstname,_that.lastname,_that.birthday,_that.height,_that.weight,_that.notes,_that.preferredFoot,_that.basicForces,_that.city,_that.country,_that.photo,_that.teamId);case _:
@@ -206,7 +206,7 @@ return $default(_that.id,_that.firstname,_that.lastname,_that.birthday,_that.hei
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String firstname,  String lastname,  DateTime birthday, @JsonKey(fromJson: _numFromJson)  double height, @JsonKey(fromJson: _numFromJson)  double weight,  String notes, @JsonKey(fromJson: _footFromJson, toJson: _footToJson)  FootPreference preferredFoot,  bool basicForces,  String city,  String country,  String photo,  String? teamId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String firstname,  String lastname,  DateTime? birthday, @JsonKey(fromJson: _numFromJson, toJson: _numToJson)  double? height, @JsonKey(fromJson: _numFromJson, toJson: _numToJson)  double? weight,  String? notes, @JsonKey(fromJson: _footFromJson, toJson: _footToJson)  FootPreference preferredFoot,  bool basicForces,  String? city,  String? country,  String? photo,  String? teamId)?  $default,) {final _that = this;
 switch (_that) {
 case _Player() when $default != null:
 return $default(_that.id,_that.firstname,_that.lastname,_that.birthday,_that.height,_that.weight,_that.notes,_that.preferredFoot,_that.basicForces,_that.city,_that.country,_that.photo,_that.teamId);case _:
@@ -221,21 +221,21 @@ return $default(_that.id,_that.firstname,_that.lastname,_that.birthday,_that.hei
 
 @JsonSerializable(fieldRename: FieldRename.snake)
 class _Player implements Player {
-  const _Player({this.id, required this.firstname, required this.lastname, required this.birthday, @JsonKey(fromJson: _numFromJson) required this.height, @JsonKey(fromJson: _numFromJson) required this.weight, required this.notes, @JsonKey(fromJson: _footFromJson, toJson: _footToJson) required this.preferredFoot, required this.basicForces, required this.city, required this.country, required this.photo, this.teamId});
+  const _Player({this.id, required this.firstname, required this.lastname, this.birthday, @JsonKey(fromJson: _numFromJson, toJson: _numToJson) this.height, @JsonKey(fromJson: _numFromJson, toJson: _numToJson) this.weight, this.notes, @JsonKey(fromJson: _footFromJson, toJson: _footToJson) required this.preferredFoot, required this.basicForces, this.city, this.country, this.photo, this.teamId});
   factory _Player.fromJson(Map<String, dynamic> json) => _$PlayerFromJson(json);
 
 @override final  String? id;
 @override final  String firstname;
 @override final  String lastname;
-@override final  DateTime birthday;
-@override@JsonKey(fromJson: _numFromJson) final  double height;
-@override@JsonKey(fromJson: _numFromJson) final  double weight;
-@override final  String notes;
+@override final  DateTime? birthday;
+@override@JsonKey(fromJson: _numFromJson, toJson: _numToJson) final  double? height;
+@override@JsonKey(fromJson: _numFromJson, toJson: _numToJson) final  double? weight;
+@override final  String? notes;
 @override@JsonKey(fromJson: _footFromJson, toJson: _footToJson) final  FootPreference preferredFoot;
 @override final  bool basicForces;
-@override final  String city;
-@override final  String country;
-@override final  String photo;
+@override final  String? city;
+@override final  String? country;
+@override final  String? photo;
 @override final  String? teamId;
 
 /// Create a copy of Player
@@ -271,7 +271,7 @@ abstract mixin class _$PlayerCopyWith<$Res> implements $PlayerCopyWith<$Res> {
   factory _$PlayerCopyWith(_Player value, $Res Function(_Player) _then) = __$PlayerCopyWithImpl;
 @override @useResult
 $Res call({
- String? id, String firstname, String lastname, DateTime birthday,@JsonKey(fromJson: _numFromJson) double height,@JsonKey(fromJson: _numFromJson) double weight, String notes,@JsonKey(fromJson: _footFromJson, toJson: _footToJson) FootPreference preferredFoot, bool basicForces, String city, String country, String photo, String? teamId
+ String? id, String firstname, String lastname, DateTime? birthday,@JsonKey(fromJson: _numFromJson, toJson: _numToJson) double? height,@JsonKey(fromJson: _numFromJson, toJson: _numToJson) double? weight, String? notes,@JsonKey(fromJson: _footFromJson, toJson: _footToJson) FootPreference preferredFoot, bool basicForces, String? city, String? country, String? photo, String? teamId
 });
 
 
@@ -288,21 +288,21 @@ class __$PlayerCopyWithImpl<$Res>
 
 /// Create a copy of Player
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? firstname = null,Object? lastname = null,Object? birthday = null,Object? height = null,Object? weight = null,Object? notes = null,Object? preferredFoot = null,Object? basicForces = null,Object? city = null,Object? country = null,Object? photo = null,Object? teamId = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? firstname = null,Object? lastname = null,Object? birthday = freezed,Object? height = freezed,Object? weight = freezed,Object? notes = freezed,Object? preferredFoot = null,Object? basicForces = null,Object? city = freezed,Object? country = freezed,Object? photo = freezed,Object? teamId = freezed,}) {
   return _then(_Player(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String?,firstname: null == firstname ? _self.firstname : firstname // ignore: cast_nullable_to_non_nullable
 as String,lastname: null == lastname ? _self.lastname : lastname // ignore: cast_nullable_to_non_nullable
-as String,birthday: null == birthday ? _self.birthday : birthday // ignore: cast_nullable_to_non_nullable
-as DateTime,height: null == height ? _self.height : height // ignore: cast_nullable_to_non_nullable
-as double,weight: null == weight ? _self.weight : weight // ignore: cast_nullable_to_non_nullable
-as double,notes: null == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
-as String,preferredFoot: null == preferredFoot ? _self.preferredFoot : preferredFoot // ignore: cast_nullable_to_non_nullable
+as String,birthday: freezed == birthday ? _self.birthday : birthday // ignore: cast_nullable_to_non_nullable
+as DateTime?,height: freezed == height ? _self.height : height // ignore: cast_nullable_to_non_nullable
+as double?,weight: freezed == weight ? _self.weight : weight // ignore: cast_nullable_to_non_nullable
+as double?,notes: freezed == notes ? _self.notes : notes // ignore: cast_nullable_to_non_nullable
+as String?,preferredFoot: null == preferredFoot ? _self.preferredFoot : preferredFoot // ignore: cast_nullable_to_non_nullable
 as FootPreference,basicForces: null == basicForces ? _self.basicForces : basicForces // ignore: cast_nullable_to_non_nullable
-as bool,city: null == city ? _self.city : city // ignore: cast_nullable_to_non_nullable
-as String,country: null == country ? _self.country : country // ignore: cast_nullable_to_non_nullable
-as String,photo: null == photo ? _self.photo : photo // ignore: cast_nullable_to_non_nullable
-as String,teamId: freezed == teamId ? _self.teamId : teamId // ignore: cast_nullable_to_non_nullable
+as bool,city: freezed == city ? _self.city : city // ignore: cast_nullable_to_non_nullable
+as String?,country: freezed == country ? _self.country : country // ignore: cast_nullable_to_non_nullable
+as String?,photo: freezed == photo ? _self.photo : photo // ignore: cast_nullable_to_non_nullable
+as String?,teamId: freezed == teamId ? _self.teamId : teamId // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

@@ -142,17 +142,22 @@ class PlayerApi implements PlayerRepository {
     }
   }
 
-  // Convierte birthday (DateTime) a 'YYYY-MM-DD' que es lo que espera Postgres
-  // para columnas tipo `date`. El default toJson serializa como ISO completo
-  // (incluye hora) y Postgres lo aceptaría pero perdemos info al re-leer.
+  // Convierte birthday (DateTime?) a 'YYYY-MM-DD' que es lo que espera Postgres
+  // para columnas tipo `date`. Si birthday es null, lo dejamos fuera del payload.
+  // Además filtra todos los entries null para no enviar columnas vacías
+  // redundantes en updates (y evitar sobreescribir valores existentes).
   Map<String, dynamic> _serialize(Player p) {
     final json = p.toJson();
     final birthday = p.birthday;
-    final iso =
-        '${birthday.year.toString().padLeft(4, '0')}-'
-        '${birthday.month.toString().padLeft(2, '0')}-'
-        '${birthday.day.toString().padLeft(2, '0')}';
-    json['birthday'] = iso;
+    if (birthday != null) {
+      json['birthday'] =
+          '${birthday.year.toString().padLeft(4, '0')}-'
+          '${birthday.month.toString().padLeft(2, '0')}-'
+          '${birthday.day.toString().padLeft(2, '0')}';
+    } else {
+      json.remove('birthday');
+    }
+    json.removeWhere((_, v) => v == null);
     return json;
   }
 
