@@ -14,6 +14,7 @@ List<RouteBase> get $appRoutes => [
   $schoolsRoute,
   $schoolPrincipalsRoute,
   $teamsRoute,
+  $playersRoute,
 ];
 
 RouteBase get $rootRoute =>
@@ -331,6 +332,82 @@ mixin $TeamFormRoute on RelativeGoRouteData {
     queryParams: {
       if (_self.id != null) 'id': _self.id,
       if (_self.schoolId != null) 'school-id': _self.schoolId!.toString(),
+    },
+  );
+
+  @override
+  String get relativeLocation => './$subLocation';
+
+  @override
+  void goRelative(BuildContext context) => context.go(relativeLocation);
+
+  @override
+  Future<T?> pushRelative<T>(BuildContext context) =>
+      context.push<T>(relativeLocation);
+
+  @override
+  void pushReplacementRelative(BuildContext context) =>
+      context.pushReplacement(relativeLocation);
+
+  @override
+  void replaceRelative(BuildContext context) =>
+      context.replace(relativeLocation);
+}
+
+RouteBase get $playersRoute => GoRouteData.$route(
+  path: '/players',
+  name: 'players',
+  factory: $PlayersRoute._fromState,
+  routes: [
+    RelativeGoRouteData.$route(
+      path: 'form',
+      factory: $PlayerFormRoute._fromState,
+    ),
+  ],
+);
+
+mixin $PlayersRoute on GoRouteData {
+  static PlayersRoute _fromState(GoRouterState state) =>
+      PlayersRoute(teamFilter: state.uri.queryParameters['team-filter']);
+
+  PlayersRoute get _self => this as PlayersRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/players',
+    queryParams: {
+      if (_self.teamFilter != null) 'team-filter': _self.teamFilter,
+    },
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $PlayerFormRoute on RelativeGoRouteData {
+  static PlayerFormRoute _fromState(GoRouterState state) => PlayerFormRoute(
+    id: state.uri.queryParameters['id'],
+    teamId: state.uri.queryParameters['team-id'],
+  );
+
+  PlayerFormRoute get _self => this as PlayerFormRoute;
+
+  @override
+  String get subLocation => RelativeGoRouteData.$location(
+    'form',
+    queryParams: {
+      if (_self.id != null) 'id': _self.id,
+      if (_self.teamId != null) 'team-id': _self.teamId,
     },
   );
 

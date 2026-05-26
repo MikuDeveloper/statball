@@ -1,0 +1,881 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:reactive_forms/reactive_forms.dart';
+
+import 'package:statball/app/config/routes/routes.dart';
+import 'package:statball/app/config/themes/app_colors.dart';
+import 'package:statball/app/global/enums.dart' show FootPreference;
+import 'package:statball/app/providers/forms/player_form_provider.dart';
+import 'package:statball/app/providers/global/players_provider.dart';
+import 'package:statball/app/providers/global/teams_provider.dart';
+import 'package:statball/domain/index.dart' show Player, Team;
+import 'package:statball/infrastructure/index.dart' show PlayerApiException;
+import 'package:statball/ui/common/forms/sb_field_label.dart';
+import 'package:statball/ui/common/utils/snackbars_mixin.dart';
+
+// ════════════════════════════════════════════════════════════════════════════
+//  PLAYER FORM SCREEN — pantalla completa para crear o editar un jugador.
+//  Acepta `teamId` opcional para pre-seleccionar el equipo en creación.
+// ════════════════════════════════════════════════════════════════════════════
+class PlayerFormScreen extends ConsumerStatefulWidget {
+  final String? playerId;
+  final String? presetTeamId;
+  const PlayerFormScreen({super.key, this.playerId, this.presetTeamId});
+
+  @override
+  ConsumerState<PlayerFormScreen> createState() => _PlayerFormScreenState();
+}
+
+class _PlayerFormScreenState extends ConsumerState<PlayerFormScreen>
+    with SnackbarsMixin {
+  bool _saving = false;
+  Player? _existing;
+
+  bool get _isEdit => widget.playerId != null;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _hydrate());
+  }
+
+  void _hydrate() {
+    final form = ref.read(playerFormProvider).form;
+    if (_isEdit) {
+      final player = ref.read(playersProvider.notifier).byId(widget.playerId!);
+      if (player == null) return;
+      _existing = player;
+      form.patchValue({
+        'firstname': player.firstname,
+        'lastname': player.lastname,
+        'birthday': player.birthday,
+        'height': player.height,
+        'weight': player.weight,
+        'notes': player.notes,
+        'preferredFoot': player.preferredFoot,
+        'basicForces': player.basicForces,
+        'city': player.city,
+        'country': player.country,
+        'photo': player.photo,
+        'teamId': player.teamId,
+      });
+    } else if (widget.presetTeamId != null) {
+      form.control('teamId').value = widget.presetTeamId;
+    }
+  }
+
+  @override
+  void dispose() {
+    ref.read(playerFormProvider).form.reset();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final form = ref.read(playerFormProvider).form;
+    if (form.invalid) {
+      form.markAllAsTouched();
+      return;
+    }
+
+    setState(() => _saving = true);
+    final values = form.value;
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
+
+    final player = Player(
+      id: _existing?.id,
+      firstname: (values['firstname'] as String).trim(),
+      lastname: (values['lastname'] as String).trim(),
+      birthday: values['birthday'] as DateTime,
+      height: values['height'] as double,
+      weight: values['weight'] as double,
+      notes: (values['notes'] as String? ?? '').trim(),
+      preferredFoot: values['preferredFoot'] as FootPreference,
+      basicForces: values['basicForces'] as bool? ?? false,
+      city: (values['city'] as String).trim(),
+      country: (values['country'] as String).trim(),
+      photo: (values['photo'] as String? ?? '').trim(),
+      teamId: values['teamId'] as String?,
+    );
+
+    try {
+      final notifier = ref.read(playersProvider.notifier);
+      if (_isEdit) {
+        await notifier.update(player);
+        messenger.showSnackBar(successSnackBar(message: 'Jugador actualizado'));
+      } else {
+        await notifier.create(player);
+        messenger.showSnackBar(successSnackBar(message: 'Jugador creado'));
+      }
+      form.reset();
+      if (navigator.canPop()) navigator.pop();
+    } on PlayerApiException catch (e) {
+      messenger.showSnackBar(errorSnackBar(message: e.message));
+    } catch (_) {
+      messenger.showSnackBar(
+        errorSnackBar(message: 'No se pudo guardar el jugador'),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final form = ref.watch(playerFormProvider).form;
+    final width = MediaQuery.of(context).size.width;
+    final maxFormWidth = width > 720 ? 640.0 : double.infinity;
+
+    return Scaffold(
+      backgroundColor: AppColors.bgLight,
+      appBar: AppBar(
+        backgroundColor: AppColors.bgLight,
+        surfaceTintColor: AppColors.bgLight,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: AppColors.textPrimary),
+        title: Text(
+          _isEdit ? 'Editar jugador' : 'Nuevo jugador',
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.3,
+          ),
+        ),
+      ),
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: maxFormWidth),
+            child: ReactiveForm(
+              formGroup: form,
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+                children: [
+                  const _SectionTitle('Datos personales'),
+                  const SizedBox(height: 12),
+                  const _ResponsiveRow(
+                    children: [
+                      _LabeledField(
+                        name: 'firstname',
+                        label: 'NOMBRE *',
+                        hint: 'Ej. Andrés',
+                      ),
+                      _LabeledField(
+                        name: 'lastname',
+                        label: 'APELLIDO *',
+                        hint: 'Ej. García',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  const _BirthdayField(),
+                  const SizedBox(height: 18),
+                  const _SectionTitle('Físico'),
+                  const SizedBox(height: 12),
+                  const _ResponsiveRow(
+                    children: [
+                      _NumericField(
+                        name: 'height',
+                        label: 'ALTURA (m) *',
+                        hint: 'Ej. 1.78',
+                      ),
+                      _NumericField(
+                        name: 'weight',
+                        label: 'PESO (kg) *',
+                        hint: 'Ej. 72.5',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  const _BasicForcesSwitch(),
+                  const SizedBox(height: 18),
+
+                  const _SectionTitle('Perfil deportivo'),
+                  const SizedBox(height: 12),
+                  const SbFieldLabel(text: 'PIE PREFERIDO *'),
+                  const SizedBox(height: 8),
+                  const _FootPicker(),
+                  const SizedBox(height: 24),
+
+                  const _SectionTitle('Equipo'),
+                  const SizedBox(height: 12),
+                  const _TeamPicker(),
+                  const SizedBox(height: 18),
+
+                  const _SectionTitle('Ubicación'),
+                  const SizedBox(height: 12),
+                  const _ResponsiveRow(
+                    children: [
+                      _LabeledField(
+                        name: 'city',
+                        label: 'CIUDAD *',
+                        hint: 'Ciudad',
+                      ),
+                      _LabeledField(
+                        name: 'country',
+                        label: 'PAÍS *',
+                        hint: 'País',
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+
+                  const _SectionTitle('Extras'),
+                  const SizedBox(height: 12),
+                  const _LabeledField(
+                    name: 'photo',
+                    label: 'URL DE FOTO',
+                    hint: 'https://...',
+                    keyboard: TextInputType.url,
+                  ),
+                  const SizedBox(height: 12),
+                  const _NotesField(),
+                  const SizedBox(height: 32),
+
+                  ReactiveFormConsumer(
+                    builder: (_, fg, _) {
+                      final enabled = fg.valid && !_saving;
+                      return SizedBox(
+                        height: 52,
+                        child: FilledButton(
+                          onPressed: enabled ? _save : null,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: AppColors.accentDark,
+                            foregroundColor: AppColors.onAccent,
+                            disabledBackgroundColor: AppColors.bgDisabled,
+                            disabledForegroundColor: AppColors.textDisabled,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: _saving
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    color: AppColors.onAccent,
+                                  ),
+                                )
+                              : Text(
+                                  _isEdit ? 'Guardar cambios' : 'Crear jugador',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 15,
+                                    letterSpacing: 0.2,
+                                  ),
+                                ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Helpers de layout ──────────────────────────────────────────────────────
+
+class _SectionTitle extends StatelessWidget {
+  final String text;
+  const _SectionTitle(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text.toUpperCase(),
+      style: const TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w800,
+        color: AppColors.textMuted,
+        letterSpacing: 1.2,
+      ),
+    );
+  }
+}
+
+class _ResponsiveRow extends StatelessWidget {
+  final List<Widget> children;
+  const _ResponsiveRow({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    final isWide = MediaQuery.of(context).size.width >= 600;
+    if (!isWide) {
+      return Column(
+        children: [
+          for (var i = 0; i < children.length; i++) ...[
+            children[i],
+            if (i != children.length - 1) const SizedBox(height: 12),
+          ],
+        ],
+      );
+    }
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var i = 0; i < children.length; i++) ...[
+          Expanded(child: children[i]),
+          if (i != children.length - 1) const SizedBox(width: 12),
+        ],
+      ],
+    );
+  }
+}
+
+InputDecoration _decoration(String hint) => InputDecoration(
+  hintText: hint,
+  hintStyle: const TextStyle(color: AppColors.textMuted),
+  filled: true,
+  fillColor: AppColors.card,
+  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+  border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(12),
+    borderSide: const BorderSide(color: AppColors.cardBorder),
+  ),
+  enabledBorder: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(12),
+    borderSide: const BorderSide(color: AppColors.cardBorder),
+  ),
+  focusedBorder: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(12),
+    borderSide: const BorderSide(color: AppColors.accentDark, width: 1.4),
+  ),
+  errorBorder: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(12),
+    borderSide: const BorderSide(color: AppColors.error),
+  ),
+  focusedErrorBorder: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(12),
+    borderSide: const BorderSide(color: AppColors.error, width: 1.4),
+  ),
+);
+
+class _LabeledField extends StatelessWidget {
+  final String name;
+  final String label;
+  final String hint;
+  final TextInputType keyboard;
+
+  const _LabeledField({
+    required this.name,
+    required this.label,
+    required this.hint,
+    this.keyboard = TextInputType.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SbFieldLabel(text: label),
+        const SizedBox(height: 6),
+        ReactiveTextField<String>(
+          formControlName: name,
+          keyboardType: keyboard,
+          style: const TextStyle(color: AppColors.textPrimary),
+          decoration: _decoration(hint),
+          validationMessages: {ValidationMessage.required: (_) => 'Requerido'},
+        ),
+      ],
+    );
+  }
+}
+
+// Campo numérico decimal con teclado numérico
+class _NumericField extends StatelessWidget {
+  final String name;
+  final String label;
+  final String hint;
+  const _NumericField({
+    required this.name,
+    required this.label,
+    required this.hint,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SbFieldLabel(text: label),
+        const SizedBox(height: 6),
+        ReactiveTextField<double>(
+          formControlName: name,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+          ],
+          valueAccessor: _DoubleValueAccessor(),
+          style: const TextStyle(color: AppColors.textPrimary),
+          decoration: _decoration(hint),
+          validationMessages: {
+            ValidationMessage.required: (_) => 'Requerido',
+            ValidationMessage.number: (_) => 'Número inválido',
+            ValidationMessage.min: (_) => 'Valor demasiado bajo',
+          },
+        ),
+      ],
+    );
+  }
+}
+
+// Reactive Forms espera control<double>; el TextField trabaja con String.
+// Este accessor convierte entre ambos y acepta comas como separador decimal.
+class _DoubleValueAccessor extends ControlValueAccessor<double, String> {
+  @override
+  String modelToViewValue(double? modelValue) {
+    if (modelValue == null) return '';
+    // Si el número es entero, mostramos sin ".0" para no confundir al usuario
+    if (modelValue % 1 == 0) return modelValue.toInt().toString();
+    return modelValue.toString();
+  }
+
+  @override
+  double? viewToModelValue(String? viewValue) {
+    if (viewValue == null || viewValue.trim().isEmpty) return null;
+    return double.tryParse(viewValue.replaceAll(',', '.'));
+  }
+}
+
+// ─── _BirthdayField ─────────────────────────────────────────────────────────
+class _BirthdayField extends StatelessWidget {
+  const _BirthdayField();
+
+  @override
+  Widget build(BuildContext context) {
+    final control =
+        ReactiveForm.of(context)!.control('birthday') as FormControl<DateTime>;
+    return StreamBuilder<DateTime?>(
+      stream: control.valueChanges,
+      initialData: control.value,
+      builder: (_, snapshot) {
+        final value = snapshot.data;
+        final text = value == null
+            ? 'Selecciona fecha de nacimiento'
+            : '${value.day.toString().padLeft(2, '0')}/'
+                  '${value.month.toString().padLeft(2, '0')}/'
+                  '${value.year}';
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SbFieldLabel(text: 'FECHA DE NACIMIENTO *'),
+            const SizedBox(height: 6),
+            Material(
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(12),
+              child: InkWell(
+                onTap: () => _pick(context, control),
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 16,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.cardBorder),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.calendar_today_rounded,
+                        size: 18,
+                        color: AppColors.textMuted,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          text,
+                          style: TextStyle(
+                            color: value == null
+                                ? AppColors.textMuted
+                                : AppColors.textPrimary,
+                            fontSize: 14.5,
+                            fontWeight: value == null
+                                ? FontWeight.w400
+                                : FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      if (value != null)
+                        const Icon(
+                          Icons.edit_rounded,
+                          size: 16,
+                          color: AppColors.textMuted,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            if (control.touched && control.invalid)
+              const Padding(
+                padding: EdgeInsets.only(top: 6, left: 4),
+                child: Text(
+                  'Requerido',
+                  style: TextStyle(color: AppColors.error, fontSize: 12),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _pick(
+    BuildContext context,
+    FormControl<DateTime> control,
+  ) async {
+    final now = DateTime.now();
+    final initial =
+        control.value ?? DateTime(now.year - 15, now.month, now.day);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(1950),
+      lastDate: now,
+      helpText: 'Fecha de nacimiento',
+    );
+    if (picked != null) {
+      control.value = picked;
+      control.markAsTouched();
+    }
+  }
+}
+
+// ─── _BasicForcesSwitch ─────────────────────────────────────────────────────
+class _BasicForcesSwitch extends StatelessWidget {
+  const _BasicForcesSwitch();
+
+  @override
+  Widget build(BuildContext context) {
+    final control =
+        ReactiveForm.of(context)!.control('basicForces') as FormControl<bool>;
+    return StreamBuilder<bool?>(
+      stream: control.valueChanges,
+      initialData: control.value,
+      builder: (_, snapshot) {
+        final on = snapshot.data ?? false;
+        return Material(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(12),
+          child: InkWell(
+            onTap: () => control.value = !on,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: on ? AppColors.accentAlt : AppColors.cardBorder,
+                  width: on ? 1.4 : 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.fitness_center_rounded,
+                    color: on ? AppColors.accentAlt : AppColors.textMuted,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Fuerzas básicas',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'Tiene preparación física fundamental',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: AppColors.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Switch(
+                    value: on,
+                    onChanged: (v) => control.value = v,
+                    activeColor: AppColors.accentAlt,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ─── _FootPicker ────────────────────────────────────────────────────────────
+class _FootPicker extends StatelessWidget {
+  const _FootPicker();
+
+  @override
+  Widget build(BuildContext context) {
+    final control =
+        ReactiveForm.of(context)!.control('preferredFoot')
+            as FormControl<FootPreference>;
+
+    return StreamBuilder<FootPreference?>(
+      stream: control.valueChanges,
+      initialData: control.value,
+      builder: (_, snapshot) {
+        final current = snapshot.data;
+        return Row(
+          children: [
+            for (final f in FootPreference.values) ...[
+              Expanded(
+                child: _FootChip(
+                  foot: f,
+                  selected: current == f,
+                  onTap: () => control.value = f,
+                ),
+              ),
+              if (f != FootPreference.values.last) const SizedBox(width: 8),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _FootChip extends StatelessWidget {
+  final FootPreference foot;
+  final bool selected;
+  final VoidCallback onTap;
+  const _FootChip({
+    required this.foot,
+    required this.selected,
+    required this.onTap,
+  });
+
+  IconData get _icon => switch (foot) {
+    FootPreference.izquierda => Icons.arrow_back_rounded,
+    FootPreference.derecha => Icons.arrow_forward_rounded,
+    FootPreference.ambidiestro => Icons.swap_horiz_rounded,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final color = AppColors.accentDark;
+    return Material(
+      color: selected ? color : AppColors.card,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: selected ? color : AppColors.cardBorder,
+              width: selected ? 1.6 : 1,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                _icon,
+                color: selected ? AppColors.onAccent : color,
+                size: 22,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                foot.label,
+                style: TextStyle(
+                  color: selected ? AppColors.onAccent : AppColors.textPrimary,
+                  fontSize: 12.5,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── _TeamPicker ────────────────────────────────────────────────────────────
+// Dropdown nullable (un jugador puede no tener equipo).
+class _TeamPicker extends ConsumerWidget {
+  const _TeamPicker();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(teamsProvider);
+    final control =
+        ReactiveForm.of(context)!.control('teamId') as FormControl<String>;
+
+    return async.when(
+      loading: () => const _PickerSkeleton(message: 'Cargando equipos...'),
+      error: (e, _) => _PickerSkeleton(message: 'No se pudo cargar: $e'),
+      data: (teams) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _TeamDropdown(control: control, teams: teams),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              onPressed: () => TeamFormRoute().push<void>(context),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.accentDark,
+                alignment: Alignment.centerLeft,
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+              ),
+              icon: const Icon(Icons.add_rounded, size: 18),
+              label: const Text(
+                'Crear nuevo equipo',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _TeamDropdown extends StatelessWidget {
+  final FormControl<String> control;
+  final List<Team> teams;
+  const _TeamDropdown({required this.control, required this.teams});
+
+  @override
+  Widget build(BuildContext context) {
+    final valid = teams.where((t) => t.id != null).toList();
+    return StreamBuilder<String?>(
+      stream: control.valueChanges,
+      initialData: control.value,
+      builder: (context, snapshot) {
+        return DropdownButtonFormField<String?>(
+          initialValue: snapshot.data,
+          isExpanded: true,
+          hint: const Text(
+            'Sin equipo',
+            style: TextStyle(color: AppColors.textMuted),
+          ),
+          decoration: _decoration('Sin equipo').copyWith(
+            suffixIcon: snapshot.data == null
+                ? null
+                : IconButton(
+                    tooltip: 'Quitar equipo',
+                    icon: const Icon(
+                      Icons.clear_rounded,
+                      size: 18,
+                      color: AppColors.textMuted,
+                    ),
+                    onPressed: () => control.value = null,
+                  ),
+          ),
+          items: <DropdownMenuItem<String?>>[
+            const DropdownMenuItem<String?>(
+              value: null,
+              child: Text(
+                'Sin equipo',
+                style: TextStyle(color: AppColors.textMuted),
+              ),
+            ),
+            ...valid.map(
+              (t) => DropdownMenuItem<String?>(
+                value: t.id,
+                child: Text(
+                  '${t.name} · ${t.category}',
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: AppColors.textPrimary),
+                ),
+              ),
+            ),
+          ],
+          onChanged: (v) => control.value = v,
+        );
+      },
+    );
+  }
+}
+
+// ─── _NotesField ────────────────────────────────────────────────────────────
+class _NotesField extends StatelessWidget {
+  const _NotesField();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SbFieldLabel(text: 'NOTAS'),
+        const SizedBox(height: 6),
+        ReactiveTextField<String>(
+          formControlName: 'notes',
+          maxLines: 4,
+          minLines: 3,
+          style: const TextStyle(color: AppColors.textPrimary),
+          decoration: _decoration(
+            'Observaciones, lesiones, talento destacado...',
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PickerSkeleton extends StatelessWidget {
+  final String message;
+  const _PickerSkeleton({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(
+            width: 14,
+            height: 14,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: AppColors.textMuted,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 12.5,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

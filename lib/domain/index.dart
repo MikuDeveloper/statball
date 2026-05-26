@@ -13,3 +13,7 @@ export 'use_cases/school_principal_use_case.dart';
 export 'models/team/repository/team_repository.dart';
 export 'models/team/team.dart';
 export 'use_cases/team_use_case.dart';
+
+export 'models/player/repository/player_repository.dart';
+export 'models/player/player.dart';
+export 'use_cases/player_use_case.dart';

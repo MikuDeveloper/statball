@@ -9,3 +9,6 @@ export 'helpers/exceptions/school_principal_api_exception.dart';
 
 export 'driven_adapter/team/team_api.dart';
 export 'helpers/exceptions/team_api_exception.dart';
+
+export 'driven_adapter/player/player_api.dart';
+export 'helpers/exceptions/player_api_exception.dart';

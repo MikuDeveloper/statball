@@ -40,3 +40,24 @@ enum TeamGender {
 
   String get label => dbValue;
 }
+
+// ─── FootPreference ─────────────────────────────────────────────────────────
+// Coincide con el enum `foot_enum` de Postgres (pierna preferida del jugador).
+enum FootPreference {
+  izquierda('Izquierda'),
+  derecha('Derecha'),
+  ambidiestro('Ambidiestro');
+
+  const FootPreference(this.dbValue);
+
+  final String dbValue;
+
+  static FootPreference fromDb(String value) {
+    for (final f in FootPreference.values) {
+      if (f.dbValue == value) return f;
+    }
+    throw ArgumentError('Pie preferido desconocido: $value');
+  }
+
+  String get label => dbValue;
+}

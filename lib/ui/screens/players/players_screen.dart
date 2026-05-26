@@ -3,34 +3,33 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:statball/app/config/routes/routes.dart';
 import 'package:statball/app/config/themes/app_colors.dart';
-import 'package:statball/app/providers/global/schools_provider.dart';
+import 'package:statball/app/providers/global/players_provider.dart';
 import 'package:statball/app/providers/global/teams_provider.dart';
-import 'package:statball/domain/index.dart' show School, Team;
+import 'package:statball/domain/index.dart' show Player, Team;
 
-import 'widgets/team_list_tile.dart';
+import 'widgets/player_list_tile.dart';
 
 // ════════════════════════════════════════════════════════════════════════════
-//  TEAMS SCREEN — catálogo de equipos. Acepta `schoolId` opcional para
-//  pre-filtrar a los equipos de una escuela específica (ej. al venir desde
-//  el form de schools en modo edición).
+//  PLAYERS SCREEN — catálogo de jugadores. Acepta `teamFilter` opcional para
+//  pre-filtrar el listado a un equipo específico (ej. desde el detalle de team).
 // ════════════════════════════════════════════════════════════════════════════
-class TeamsScreen extends ConsumerStatefulWidget {
-  final int? schoolFilter;
-  const TeamsScreen({super.key, this.schoolFilter});
+class PlayersScreen extends ConsumerStatefulWidget {
+  final String? teamFilter;
+  const PlayersScreen({super.key, this.teamFilter});
 
   @override
-  ConsumerState<TeamsScreen> createState() => _TeamsScreenState();
+  ConsumerState<PlayersScreen> createState() => _PlayersScreenState();
 }
 
-class _TeamsScreenState extends ConsumerState<TeamsScreen> {
+class _PlayersScreenState extends ConsumerState<PlayersScreen> {
   final _searchCtrl = TextEditingController();
   String _query = '';
-  int? _schoolFilter;
+  String? _teamFilter;
 
   @override
   void initState() {
     super.initState();
-    _schoolFilter = widget.schoolFilter;
+    _teamFilter = widget.teamFilter;
   }
 
   @override
@@ -41,8 +40,8 @@ class _TeamsScreenState extends ConsumerState<TeamsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final asyncPlayers = ref.watch(playersProvider);
     final asyncTeams = ref.watch(teamsProvider);
-    final asyncSchools = ref.watch(schoolsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.bgLight,
@@ -52,7 +51,7 @@ class _TeamsScreenState extends ConsumerState<TeamsScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
         title: const Text(
-          'Equipos',
+          'Jugadores',
           style: TextStyle(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.w700,
@@ -61,27 +60,22 @@ class _TeamsScreenState extends ConsumerState<TeamsScreen> {
         ),
         actions: [
           IconButton(
-            tooltip: 'Jugadores',
-            icon: const Icon(Icons.person_outline_rounded),
-            onPressed: () => const PlayersRoute().push<void>(context),
-          ),
-          IconButton(
             tooltip: 'Recargar',
             icon: const Icon(Icons.refresh_rounded),
-            onPressed: asyncTeams.isLoading
+            onPressed: asyncPlayers.isLoading
                 ? null
-                : () => ref.read(teamsProvider.notifier).refresh(),
+                : () => ref.read(playersProvider.notifier).refresh(),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () =>
-            TeamFormRoute(schoolId: _schoolFilter).push<void>(context),
+            PlayerFormRoute(teamId: _teamFilter).push<void>(context),
         backgroundColor: AppColors.accentDark,
         foregroundColor: AppColors.onAccent,
         icon: const Icon(Icons.add_rounded),
         label: const Text(
-          'Nuevo equipo',
+          'Nuevo jugador',
           style: TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
@@ -92,27 +86,27 @@ class _TeamsScreenState extends ConsumerState<TeamsScreen> {
               controller: _searchCtrl,
               onChanged: (v) => setState(() => _query = v.trim().toLowerCase()),
             ),
-            _SchoolFilterBar(
-              selectedSchoolId: _schoolFilter,
-              schoolsAsync: asyncSchools,
-              onChanged: (id) => setState(() => _schoolFilter = id),
+            _TeamFilterBar(
+              selectedTeamId: _teamFilter,
+              teamsAsync: asyncTeams,
+              onChanged: (id) => setState(() => _teamFilter = id),
             ),
             Expanded(
-              child: asyncTeams.when(
+              child: asyncPlayers.when(
                 loading: () => const Center(
                   child: CircularProgressIndicator(color: AppColors.accentDark),
                 ),
                 error: (e, _) => _ErrorView(
                   message: e.toString(),
-                  onRetry: () => ref.read(teamsProvider.notifier).refresh(),
+                  onRetry: () => ref.read(playersProvider.notifier).refresh(),
                 ),
-                data: (teams) {
-                  final filtered = _filter(teams);
-                  if (teams.isEmpty) return const _EmptyView();
+                data: (players) {
+                  final filtered = _filter(players);
+                  if (players.isEmpty) return const _EmptyView();
                   if (filtered.isEmpty) return const _NoMatchView();
-                  return _TeamsList(
-                    teams: filtered,
-                    schools: asyncSchools.value ?? const <School>[],
+                  return _PlayersList(
+                    players: filtered,
+                    teams: asyncTeams.value ?? const <Team>[],
                   );
                 },
               ),
@@ -123,14 +117,14 @@ class _TeamsScreenState extends ConsumerState<TeamsScreen> {
     );
   }
 
-  List<Team> _filter(List<Team> all) {
-    Iterable<Team> out = all;
-    if (_schoolFilter != null) {
-      out = out.where((t) => t.schoolId == _schoolFilter);
+  List<Player> _filter(List<Player> all) {
+    Iterable<Player> out = all;
+    if (_teamFilter != null) {
+      out = out.where((p) => p.teamId == _teamFilter);
     }
     if (_query.isNotEmpty) {
-      out = out.where((t) {
-        final hay = [t.name, t.category, t.coachName].join(' ').toLowerCase();
+      out = out.where((p) {
+        final hay = [p.firstname, p.lastname, p.city].join(' ').toLowerCase();
         return hay.contains(_query);
       });
     }
@@ -138,22 +132,21 @@ class _TeamsScreenState extends ConsumerState<TeamsScreen> {
   }
 }
 
-class _TeamsList extends ConsumerWidget {
+class _PlayersList extends ConsumerWidget {
+  final List<Player> players;
   final List<Team> teams;
-  final List<School> schools;
-  const _TeamsList({required this.teams, required this.schools});
+  const _PlayersList({required this.players, required this.teams});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final width = MediaQuery.of(context).size.width;
     final isWide = width >= 720;
     final bottomGap = MediaQuery.of(context).padding.bottom + 96;
-    // Index para resolver nombre de escuela en O(1)
-    final schoolNames = {for (final s in schools) s.id: s.name};
+    final teamNames = {for (final t in teams) t.id: t.name};
 
     return RefreshIndicator(
       color: AppColors.accentDark,
-      onRefresh: () => ref.read(teamsProvider.notifier).refresh(),
+      onRefresh: () => ref.read(playersProvider.notifier).refresh(),
       child: isWide
           ? GridView.builder(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -164,20 +157,24 @@ class _TeamsList extends ConsumerWidget {
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
               ),
-              itemCount: teams.length,
-              itemBuilder: (_, i) => TeamListTile(
-                team: teams[i],
-                schoolName: schoolNames[teams[i].schoolId],
+              itemCount: players.length,
+              itemBuilder: (_, i) => PlayerListTile(
+                player: players[i],
+                teamName: players[i].teamId == null
+                    ? null
+                    : teamNames[players[i].teamId],
               ),
             )
           : ListView.separated(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.fromLTRB(16, 12, 16, bottomGap),
-              itemCount: teams.length,
+              itemCount: players.length,
               separatorBuilder: (_, _) => const SizedBox(height: 8),
-              itemBuilder: (_, i) => TeamListTile(
-                team: teams[i],
-                schoolName: schoolNames[teams[i].schoolId],
+              itemBuilder: (_, i) => PlayerListTile(
+                player: players[i],
+                teamName: players[i].teamId == null
+                    ? null
+                    : teamNames[players[i].teamId],
               ),
             ),
     );
@@ -198,7 +195,7 @@ class _SearchBar extends StatelessWidget {
         onChanged: onChanged,
         style: const TextStyle(color: AppColors.textPrimary),
         decoration: InputDecoration(
-          hintText: 'Buscar por nombre, categoría o entrenador...',
+          hintText: 'Buscar por nombre, apellido o ciudad...',
           hintStyle: const TextStyle(color: AppColors.textMuted),
           prefixIcon: const Icon(
             Icons.search_rounded,
@@ -228,22 +225,22 @@ class _SearchBar extends StatelessWidget {
   }
 }
 
-// Chip horizontal scrollable de escuelas + chip "Todas" para limpiar el filtro.
-class _SchoolFilterBar extends StatelessWidget {
-  final int? selectedSchoolId;
-  final AsyncValue<List<School>> schoolsAsync;
-  final ValueChanged<int?> onChanged;
+// Chip bar horizontal de equipos + "Todos" para limpiar + "Sin equipo".
+class _TeamFilterBar extends StatelessWidget {
+  final String? selectedTeamId;
+  final AsyncValue<List<Team>> teamsAsync;
+  final ValueChanged<String?> onChanged;
 
-  const _SchoolFilterBar({
-    required this.selectedSchoolId,
-    required this.schoolsAsync,
+  const _TeamFilterBar({
+    required this.selectedTeamId,
+    required this.teamsAsync,
     required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    final schools = schoolsAsync.value ?? const <School>[];
-    if (schools.isEmpty) return const SizedBox.shrink();
+    final teams = teamsAsync.value ?? const <Team>[];
+    if (teams.isEmpty) return const SizedBox.shrink();
 
     return SizedBox(
       height: 44,
@@ -252,17 +249,17 @@ class _SchoolFilterBar extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
         children: [
           _FilterChip(
-            label: 'Todas',
-            selected: selectedSchoolId == null,
+            label: 'Todos',
+            selected: selectedTeamId == null,
             onTap: () => onChanged(null),
           ),
-          for (final s in schools)
-            if (s.id != null) ...[
+          for (final t in teams)
+            if (t.id != null) ...[
               const SizedBox(width: 8),
               _FilterChip(
-                label: s.name,
-                selected: selectedSchoolId == s.id,
-                onTap: () => onChanged(s.id),
+                label: t.name,
+                selected: selectedTeamId == t.id,
+                onTap: () => onChanged(t.id),
               ),
             ],
         ],
@@ -329,14 +326,14 @@ class _EmptyView extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: const Icon(
-                Icons.groups_rounded,
+                Icons.person_rounded,
                 color: AppColors.accentDark,
                 size: 48,
               ),
             ),
             const SizedBox(height: 18),
             const Text(
-              'Aún no hay equipos',
+              'Aún no hay jugadores',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -345,7 +342,7 @@ class _EmptyView extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             const Text(
-              'Crea el primero con el botón “Nuevo equipo”.',
+              'Registra el primero con el botón “Nuevo jugador”.',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 13.5, color: AppColors.textMuted),
             ),

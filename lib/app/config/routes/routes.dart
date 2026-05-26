@@ -125,3 +125,33 @@ class TeamFormRoute extends RelativeGoRouteData with $TeamFormRoute {
   Widget build(BuildContext context, GoRouterState state) =>
       TeamFormScreen(teamId: id, presetSchoolId: schoolId);
 }
+
+@TypedGoRoute<PlayersRoute>(
+  path: '/players',
+  name: 'players',
+  routes: <TypedRelativeGoRoute<RelativeGoRouteData>>[
+    TypedRelativeGoRoute<PlayerFormRoute>(path: 'form'),
+  ],
+)
+class PlayersRoute extends GoRouteData with $PlayersRoute {
+  // teamFilter opcional: filtra el listado por equipo al abrir.
+  const PlayersRoute({this.teamFilter});
+
+  final String? teamFilter;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      PlayersScreen(teamFilter: teamFilter);
+}
+
+class PlayerFormRoute extends RelativeGoRouteData with $PlayerFormRoute {
+  // `id` para edición; `teamId` para pre-seleccionar equipo en creación.
+  const PlayerFormRoute({this.id, this.teamId});
+
+  final String? id;
+  final String? teamId;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      PlayerFormScreen(playerId: id, presetTeamId: teamId);
+}

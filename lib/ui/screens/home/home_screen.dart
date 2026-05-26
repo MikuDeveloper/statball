@@ -84,7 +84,9 @@ class _HomeScreenState extends State<HomeScreen> {
   // Índices del SbBottomNav: 0 Inicio, 1 Jugadores, 2 Escuelas, 3 Estadísticas
   void _onNavTap(int index) {
     setState(() => _navIndex = index);
-    if (index == 2) {
+    if (index == 1) {
+      const PlayersRoute().push<void>(context);
+    } else if (index == 2) {
       const SchoolsRoute().push<void>(context);
     }
   }
@@ -94,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _goToRegisterPlayer() {
-    // TODO: Navigator.push → RegisterPlayerScreen
+    const PlayersRoute().push<void>(context);
   }
 
   void _goToRegisterSchool() {
