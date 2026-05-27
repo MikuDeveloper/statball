@@ -25,7 +25,7 @@ class Schools extends _$Schools {
     return created;
   }
 
-  Future<School> update(School school) async {
+  Future<School> updateSchool(School school) async {
     final updated = await ref.read(schoolUseCaseProvider).update(school);
     final next = [...(state.value ?? <School>[])];
     final idx = next.indexWhere((s) => s.id == updated.id);

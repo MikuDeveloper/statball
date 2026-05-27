@@ -7,7 +7,9 @@ import 'package:statball/app/config/themes/app_colors.dart';
 import 'package:statball/app/providers/forms/school_form_provider.dart';
 import 'package:statball/app/providers/global/school_principals_provider.dart';
 import 'package:statball/app/providers/global/schools_provider.dart';
-import 'package:statball/domain/index.dart' show School, SchoolPrincipal;
+// Sin `show` para que SchoolPrincipalX.displayName entre en scope desde
+// el dropdown de directores.
+import 'package:statball/domain/index.dart';
 import 'package:statball/infrastructure/index.dart' show SchoolApiException;
 import 'package:statball/ui/common/forms/sb_field_label.dart';
 import 'package:statball/ui/common/utils/snackbars_mixin.dart';
@@ -34,10 +36,13 @@ class _SchoolFormScreenState extends ConsumerState<SchoolFormScreen>
   @override
   void initState() {
     super.initState();
-    // Hidrata el form si estamos en modo edición (post-frame para tener acceso a ref)
-    if (_isEdit) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _hydrate());
-    }
+    // Reset al entrar (no en dispose) para no notificar listeners mientras
+    // los widgets se están desmontando — bug clásico Riverpod + reactive_forms.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(schoolFormProvider).form.reset();
+      if (_isEdit) _hydrate();
+    });
   }
 
   void _hydrate() {
@@ -60,12 +65,9 @@ class _SchoolFormScreenState extends ConsumerState<SchoolFormScreen>
     });
   }
 
-  @override
-  void dispose() {
-    // Limpia los valores del form al salir para no contaminar la próxima sesión
-    ref.read(schoolFormProvider).form.reset();
-    super.dispose();
-  }
+  // Antes había un form.reset() en dispose() — eliminado porque dispara
+  // listeners (ReactiveTextField, StreamBuilder) mientras el widget se
+  // desmonta. El reset ahora vive en initState (al entrar).
 
   String? _clean(Object? v) {
     final s = (v as String?)?.trim();
@@ -101,7 +103,7 @@ class _SchoolFormScreenState extends ConsumerState<SchoolFormScreen>
     try {
       final notifier = ref.read(schoolsProvider.notifier);
       if (_isEdit) {
-        await notifier.update(school);
+        await notifier.updateSchool(school);
         messenger.showSnackBar(successSnackBar(message: 'Escuela actualizada'));
       } else {
         await notifier.create(school);
@@ -405,7 +407,8 @@ class _PrincipalPicker extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(schoolPrincipalsProvider);
     final control =
-        ReactiveForm.of(context)!.control('principalId') as FormControl<int>;
+        (ReactiveForm.of(context) as FormGroup?)!.control('principalId')
+            as FormControl<int>;
 
     return async.when(
       loading: () => const _PickerSkeleton(message: 'Cargando directores...'),

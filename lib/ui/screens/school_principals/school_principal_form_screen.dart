@@ -35,9 +35,13 @@ class _SchoolPrincipalFormScreenState
   @override
   void initState() {
     super.initState();
-    if (_isEdit) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _hydrate());
-    }
+    // Reset al entrar (no en dispose) para evitar el bug clásico de
+    // Riverpod + reactive_forms (notificar listeners ya en unmount).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(schoolPrincipalFormProvider).form.reset();
+      if (_isEdit) _hydrate();
+    });
   }
 
   void _hydrate() {
@@ -58,11 +62,7 @@ class _SchoolPrincipalFormScreenState
     });
   }
 
-  @override
-  void dispose() {
-    ref.read(schoolPrincipalFormProvider).form.reset();
-    super.dispose();
-  }
+  // No-op intencional: el reset vive en initState (ver comentario allí).
 
   String? _clean(Object? v) {
     final s = (v as String?)?.trim();
@@ -94,7 +94,7 @@ class _SchoolPrincipalFormScreenState
     try {
       final notifier = ref.read(schoolPrincipalsProvider.notifier);
       if (_isEdit) {
-        await notifier.update(principal);
+        await notifier.updatePrincipal(principal);
         messenger.showSnackBar(
           successSnackBar(message: 'Director actualizado'),
         );

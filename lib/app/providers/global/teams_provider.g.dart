@@ -32,7 +32,7 @@ final class TeamsProvider extends $AsyncNotifierProvider<Teams, List<Team>> {
   Teams create() => Teams();
 }
 
-String _$teamsHash() => r'7f2e6417d9fc194b30066abde8aa4957ec0a930d';
+String _$teamsHash() => r'10cb642148de3b1df96592039eab32892237ed79';
 
 abstract class _$Teams extends $AsyncNotifier<List<Team>> {
   FutureOr<List<Team>> build();

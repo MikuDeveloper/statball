@@ -5,7 +5,8 @@ import 'package:statball/app/config/routes/routes.dart';
 import 'package:statball/app/config/themes/app_colors.dart';
 import 'package:statball/app/global/constants.dart' show defaultRadius;
 import 'package:statball/app/providers/global/scouts_provider.dart';
-import 'package:statball/domain/index.dart' show Scout;
+// Sin `show` para que ScoutX (displayName, age) entre en scope.
+import 'package:statball/domain/index.dart';
 import 'package:statball/infrastructure/index.dart' show ScoutApiException;
 import 'package:statball/ui/common/utils/snackbars_mixin.dart';
 

@@ -180,3 +180,64 @@ class ScoutFormRoute extends RelativeGoRouteData with $ScoutFormRoute {
   Widget build(BuildContext context, GoRouterState state) =>
       ScoutFormScreen(scoutId: id);
 }
+
+// ════════════════════════════════════════════════════════════════════════════
+//  Extensiones push() para routes relativas
+//
+//  El codegen de go_router_builder solo genera `pushRelative()` para
+//  RelativeGoRouteData (que requiere que el contexto sea descendiente del
+//  padre). Estas extensiones exponen `push<T>()` resolviendo el path absoluto
+//  compuesto (parent + sub + query params), lo cual permite navegar desde
+//  cualquier punto de la app sin importar la jerarquía actual de rutas.
+// ════════════════════════════════════════════════════════════════════════════
+
+extension SchoolFormRoutePush on SchoolFormRoute {
+  Future<T?> push<T>(BuildContext context) => context.push<T>(
+    Uri(
+      path: '/schools/form',
+      queryParameters: {if (id != null) 'id': id!.toString()},
+    ).toString(),
+  );
+}
+
+extension SchoolPrincipalFormRoutePush on SchoolPrincipalFormRoute {
+  Future<T?> push<T>(BuildContext context) => context.push<T>(
+    Uri(
+      path: '/school-principals/form',
+      queryParameters: {if (id != null) 'id': id!.toString()},
+    ).toString(),
+  );
+}
+
+extension TeamFormRoutePush on TeamFormRoute {
+  Future<T?> push<T>(BuildContext context) => context.push<T>(
+    Uri(
+      path: '/teams/form',
+      queryParameters: {
+        if (id != null) 'id': id!,
+        if (schoolId != null) 'school-id': schoolId!.toString(),
+      },
+    ).toString(),
+  );
+}
+
+extension PlayerFormRoutePush on PlayerFormRoute {
+  Future<T?> push<T>(BuildContext context) => context.push<T>(
+    Uri(
+      path: '/players/form',
+      queryParameters: {
+        if (id != null) 'id': id!,
+        if (teamId != null) 'team-id': teamId!,
+      },
+    ).toString(),
+  );
+}
+
+extension ScoutFormRoutePush on ScoutFormRoute {
+  Future<T?> push<T>(BuildContext context) => context.push<T>(
+    Uri(
+      path: '/scouts/form',
+      queryParameters: {if (id != null) 'id': id!},
+    ).toString(),
+  );
+}

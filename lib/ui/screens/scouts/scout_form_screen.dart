@@ -32,9 +32,12 @@ class _ScoutFormScreenState extends ConsumerState<ScoutFormScreen>
   @override
   void initState() {
     super.initState();
-    if (_isEdit) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _hydrate());
-    }
+    // Reset al entrar (no en dispose) para no notificar listeners en unmount.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(scoutFormProvider).form.reset();
+      if (_isEdit) _hydrate();
+    });
   }
 
   void _hydrate() {
@@ -52,11 +55,7 @@ class _ScoutFormScreenState extends ConsumerState<ScoutFormScreen>
     });
   }
 
-  @override
-  void dispose() {
-    ref.read(scoutFormProvider).form.reset();
-    super.dispose();
-  }
+  // El reset vive en initState (al entrar) para no notificar listeners en unmount.
 
   Future<void> _save() async {
     final form = ref.read(scoutFormProvider).form;
@@ -83,7 +82,7 @@ class _ScoutFormScreenState extends ConsumerState<ScoutFormScreen>
     try {
       final notifier = ref.read(scoutsProvider.notifier);
       if (_isEdit) {
-        await notifier.update(scout);
+        await notifier.updateScout(scout);
         messenger.showSnackBar(successSnackBar(message: 'Scout actualizado'));
       } else {
         await notifier.create(scout);
@@ -342,7 +341,8 @@ class _BirthdayField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final control =
-        ReactiveForm.of(context)!.control('birthday') as FormControl<DateTime>;
+        (ReactiveForm.of(context) as FormGroup?)!.control('birthday')
+            as FormControl<DateTime>;
 
     return StreamBuilder<DateTime?>(
       stream: control.valueChanges,

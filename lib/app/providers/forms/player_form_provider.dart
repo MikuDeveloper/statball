@@ -21,16 +21,13 @@ part 'player_form_provider.g.dart';
         validators: [Validators.required],
       ),
       'birthday': FormControl<DateTime>(value: null),
-      'height': FormControl<double>(
-        value: null,
-        // Si el usuario captura algo, debe ser razonable; pero el campo en sí
-        // es opcional. min se evalúa solo cuando hay valor.
-        validators: [Validators.min(0.5)],
-      ),
-      'weight': FormControl<double>(
-        value: null,
-        validators: [Validators.min(1)],
-      ),
+      // Sin validators: height/weight son opcionales. Antes tenía
+      // Validators.min(0.5/1) pensando que solo aplicarían a valores
+      // capturados, pero reactive_forms lo aplica también a null/0 y
+      // bloquea el form indefinidamente. Si quieres validar rangos sólo
+      // cuando hay valor, conviene un validator custom condicional.
+      'height': FormControl<double>(value: null),
+      'weight': FormControl<double>(value: null),
       'notes': FormControl<String>(value: ''),
       'preferredFoot': FormControl<FootPreference>(
         value: FootPreference.derecha,

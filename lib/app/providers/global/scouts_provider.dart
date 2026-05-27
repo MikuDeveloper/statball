@@ -23,7 +23,7 @@ class Scouts extends _$Scouts {
     return created;
   }
 
-  Future<Scout> update(Scout scout) async {
+  Future<Scout> updateScout(Scout scout) async {
     final updated = await ref.read(scoutUseCaseProvider).update(scout);
     final next = [...(state.value ?? <Scout>[])];
     final idx = next.indexWhere((s) => s.id == updated.id);

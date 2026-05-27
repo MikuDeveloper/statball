@@ -27,7 +27,7 @@ class SchoolPrincipals extends _$SchoolPrincipals {
     return created;
   }
 
-  Future<SchoolPrincipal> update(SchoolPrincipal principal) async {
+  Future<SchoolPrincipal> updatePrincipal(SchoolPrincipal principal) async {
     final updated = await ref
         .read(schoolPrincipalUseCaseProvider)
         .update(principal);

@@ -37,7 +37,12 @@ class _PlayerFormScreenState extends ConsumerState<PlayerFormScreen>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _hydrate());
+    // Reset al entrar (no en dispose) para no notificar listeners en unmount.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(playerFormProvider).form.reset();
+      _hydrate();
+    });
   }
 
   void _hydrate() {
@@ -67,11 +72,7 @@ class _PlayerFormScreenState extends ConsumerState<PlayerFormScreen>
     }
   }
 
-  @override
-  void dispose() {
-    ref.read(playerFormProvider).form.reset();
-    super.dispose();
-  }
+  // El reset vive en initState (al entrar) para no notificar listeners en unmount.
 
   Future<void> _save() async {
     final form = ref.read(playerFormProvider).form;
@@ -111,7 +112,7 @@ class _PlayerFormScreenState extends ConsumerState<PlayerFormScreen>
     try {
       final notifier = ref.read(playersProvider.notifier);
       if (_isEdit) {
-        await notifier.update(player);
+        await notifier.updatePlayer(player);
         messenger.showSnackBar(successSnackBar(message: 'Jugador actualizado'));
       } else {
         await notifier.create(player);
@@ -417,7 +418,8 @@ class _BirthdayField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final control =
-        ReactiveForm.of(context)!.control('birthday') as FormControl<DateTime>;
+        (ReactiveForm.of(context) as FormGroup?)!.control('birthday')
+            as FormControl<DateTime>;
     return StreamBuilder<DateTime?>(
       stream: control.valueChanges,
       initialData: control.value,
@@ -536,7 +538,8 @@ class _BasicForcesSwitch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final control =
-        ReactiveForm.of(context)!.control('basicForces') as FormControl<bool>;
+        (ReactiveForm.of(context) as FormGroup?)!.control('basicForces')
+            as FormControl<bool>;
     return StreamBuilder<bool?>(
       stream: control.valueChanges,
       initialData: control.value,
@@ -591,7 +594,8 @@ class _BasicForcesSwitch extends StatelessWidget {
                   Switch(
                     value: on,
                     onChanged: (v) => control.value = v,
-                    activeColor: AppColors.accentAlt,
+                    // activeColor está deprecated en Flutter 3.31+
+                    activeThumbColor: AppColors.accentAlt,
                   ),
                 ],
               ),
@@ -610,7 +614,7 @@ class _FootPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final control =
-        ReactiveForm.of(context)!.control('preferredFoot')
+        (ReactiveForm.of(context) as FormGroup?)!.control('preferredFoot')
             as FormControl<FootPreference>;
 
     return StreamBuilder<FootPreference?>(
@@ -705,7 +709,8 @@ class _TeamPicker extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(teamsProvider);
     final control =
-        ReactiveForm.of(context)!.control('teamId') as FormControl<String>;
+        (ReactiveForm.of(context) as FormGroup?)!.control('teamId')
+            as FormControl<String>;
 
     return async.when(
       loading: () => const _PickerSkeleton(message: 'Cargando equipos...'),

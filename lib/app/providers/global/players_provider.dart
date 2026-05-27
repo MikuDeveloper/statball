@@ -24,7 +24,7 @@ class Players extends _$Players {
     return created;
   }
 
-  Future<Player> update(Player player) async {
+  Future<Player> updatePlayer(Player player) async {
     final updated = await ref.read(playerUseCaseProvider).update(player);
     final next = [...(state.value ?? <Player>[])];
     final idx = next.indexWhere((p) => p.id == updated.id);

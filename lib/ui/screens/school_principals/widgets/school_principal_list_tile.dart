@@ -5,7 +5,8 @@ import 'package:statball/app/config/routes/routes.dart';
 import 'package:statball/app/config/themes/app_colors.dart';
 import 'package:statball/app/global/constants.dart' show defaultRadius;
 import 'package:statball/app/providers/global/school_principals_provider.dart';
-import 'package:statball/domain/index.dart' show SchoolPrincipal;
+// Sin `show` para que SchoolPrincipalX.displayName entre en scope.
+import 'package:statball/domain/index.dart';
 import 'package:statball/infrastructure/index.dart'
     show SchoolPrincipalApiException;
 import 'package:statball/ui/common/utils/snackbars_mixin.dart';

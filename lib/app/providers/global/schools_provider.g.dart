@@ -33,7 +33,7 @@ final class SchoolsProvider
   Schools create() => Schools();
 }
 
-String _$schoolsHash() => r'96f91068fa82593405771f9833a31c7d1497c0d2';
+String _$schoolsHash() => r'4701febed1d88d4bf3d12e885aefb9f83c5c282e';
 
 abstract class _$Schools extends $AsyncNotifier<List<School>> {
   FutureOr<List<School>> build();

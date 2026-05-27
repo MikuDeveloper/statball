@@ -33,7 +33,7 @@ final class SchoolPrincipalsProvider
   SchoolPrincipals create() => SchoolPrincipals();
 }
 
-String _$schoolPrincipalsHash() => r'20cd00e8cccf67a493362870753576d27a1610a8';
+String _$schoolPrincipalsHash() => r'93f12f0e2c7e385ac266dac01548262780112292';
 
 abstract class _$SchoolPrincipals
     extends $AsyncNotifier<List<SchoolPrincipal>> {

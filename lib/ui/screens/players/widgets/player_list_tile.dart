@@ -6,7 +6,9 @@ import 'package:statball/app/config/themes/app_colors.dart';
 import 'package:statball/app/global/constants.dart' show defaultRadius;
 import 'package:statball/app/global/enums.dart' show FootPreference;
 import 'package:statball/app/providers/global/players_provider.dart';
-import 'package:statball/domain/index.dart' show Player;
+// Sin `show Player` para que la extensión PlayerX (fullName, age) entre en
+// scope; con `show` solo entra el tipo y los getters de extensión no resuelven.
+import 'package:statball/domain/index.dart';
 import 'package:statball/infrastructure/index.dart' show PlayerApiException;
 import 'package:statball/ui/common/utils/snackbars_mixin.dart';
 

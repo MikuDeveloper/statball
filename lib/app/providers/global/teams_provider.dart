@@ -24,7 +24,7 @@ class Teams extends _$Teams {
     return created;
   }
 
-  Future<Team> update(Team team) async {
+  Future<Team> updateTeam(Team team) async {
     final updated = await ref.read(teamUseCaseProvider).update(team);
     final next = [...(state.value ?? <Team>[])];
     final idx = next.indexWhere((t) => t.id == updated.id);

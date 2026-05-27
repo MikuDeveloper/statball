@@ -37,8 +37,12 @@ class _TeamFormScreenState extends ConsumerState<TeamFormScreen>
   @override
   void initState() {
     super.initState();
-    // Hidrata el form post-frame (necesitamos ref disponible)
-    WidgetsBinding.instance.addPostFrameCallback((_) => _hydrate());
+    // Reset al entrar (no en dispose) para no notificar listeners en unmount.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(teamFormProvider).form.reset();
+      _hydrate();
+    });
   }
 
   void _hydrate() {
@@ -60,11 +64,7 @@ class _TeamFormScreenState extends ConsumerState<TeamFormScreen>
     }
   }
 
-  @override
-  void dispose() {
-    ref.read(teamFormProvider).form.reset();
-    super.dispose();
-  }
+  // El reset vive en initState (al entrar) para no notificar listeners en unmount.
 
   Future<void> _save() async {
     final form = ref.read(teamFormProvider).form;
@@ -90,7 +90,7 @@ class _TeamFormScreenState extends ConsumerState<TeamFormScreen>
     try {
       final notifier = ref.read(teamsProvider.notifier);
       if (_isEdit) {
-        await notifier.update(team);
+        await notifier.updateTeam(team);
         messenger.showSnackBar(successSnackBar(message: 'Equipo actualizado'));
       } else {
         await notifier.create(team);
@@ -273,13 +273,11 @@ class _LabeledField extends StatelessWidget {
   final String name;
   final String label;
   final String hint;
-  final TextInputType keyboard;
 
   const _LabeledField({
     required this.name,
     required this.label,
     required this.hint,
-    this.keyboard = TextInputType.text,
   });
 
   @override
@@ -291,7 +289,7 @@ class _LabeledField extends StatelessWidget {
         const SizedBox(height: 6),
         ReactiveTextField<String>(
           formControlName: name,
-          keyboardType: keyboard,
+          keyboardType: TextInputType.text,
           style: const TextStyle(color: AppColors.textPrimary),
           decoration: _fieldDecoration(hint),
           validationMessages: {ValidationMessage.required: (_) => 'Requerido'},
@@ -329,7 +327,8 @@ class _GenderPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final control =
-        ReactiveForm.of(context)!.control('gender') as FormControl<TeamGender>;
+        (ReactiveForm.of(context) as FormGroup?)!.control('gender')
+            as FormControl<TeamGender>;
 
     return StreamBuilder<TeamGender?>(
       stream: control.valueChanges,
@@ -428,7 +427,8 @@ class _SchoolPicker extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(schoolsProvider);
     final control =
-        ReactiveForm.of(context)!.control('schoolId') as FormControl<int>;
+        (ReactiveForm.of(context) as FormGroup?)!.control('schoolId')
+            as FormControl<int>;
 
     return async.when(
       loading: () => const _PickerSkeleton(message: 'Cargando escuelas...'),
