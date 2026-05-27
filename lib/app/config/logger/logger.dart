@@ -12,7 +12,7 @@ void setupLogging() {
       debugPrint(
         '[${record.level.name}] ${record.loggerName} - ${record.time}: ${record.message}',
       );
-      
+
       if (record.error != null) {
         debugPrint('ERROR: ${record.error}');
       }

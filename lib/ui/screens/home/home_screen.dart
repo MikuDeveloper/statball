@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:statball/app/config/routes/routes.dart';
 import 'package:statball/app/config/themes/app_colors.dart';
 
 import 'widgets/sb_widgets.dart';
@@ -80,18 +81,26 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   // ── Navegación ────────────────────────────────────────────────────────────
-  void _onNavTap(int index) => setState(() => _navIndex = index);
+  // Índices del SbBottomNav: 0 Inicio, 1 Jugadores, 2 Escuelas, 3 Estadísticas
+  void _onNavTap(int index) {
+    setState(() => _navIndex = index);
+    if (index == 1) {
+      const PlayersRoute().push<void>(context);
+    } else if (index == 2) {
+      const SchoolsRoute().push<void>(context);
+    }
+  }
 
   void _goToProfile() {
     // TODO: Navigator.push → ProfileScreen
   }
 
   void _goToRegisterPlayer() {
-    // TODO: Navigator.push → RegisterPlayerScreen
+    const PlayersRoute().push<void>(context);
   }
 
   void _goToRegisterSchool() {
-    // TODO: Navigator.push → RegisterSchoolScreen
+    const SchoolsRoute().push<void>(context);
   }
 
   void _goToNewVisoria() {

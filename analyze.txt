@@ -1,0 +1,46 @@
+﻿Analyzing lib...
+dart : An unexpected error was encountered by the Analysis Server.
+En línea: 1 Carácter: 240
++ ... e -Force -ErrorAction SilentlyContinue; dart analyze lib 2>&1 | Out-F ...
++                                             ~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (An unexpected e...nalysis Server.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Please file an issue at https://github.com/dart-lang/sdk/issues/new/choose with the following details:
+
+Internal error: Failed to handle request: server.shutdown
+FileSystemException: Cannot delete file, path = 'C:\Users\jcfm_\AppData\Local\Dart\perf\14672' (OS Error: El sistema 
+no tiene acceso al archivo, errno = 1920)
+#0      _File.throwIfError (dart:io/file_impl.dart:779)
+#1      _File._deleteSync (dart:io/file_impl.dart:364)
+#2      FileSystemEntity.deleteSync (dart:io/file_system_entity.dart:425)
+#3      PerfWitnessServer._shutdown (package:perf_witness/server.dart:254)
+<asynchronous suspension>
+#4      PerfWitnessServer.shutdown (package:perf_witness/server.dart:132)
+<asynchronous suspension>
+#5      shutdownPerfWitnessImpl (package:analysis_server/src/services/perf_witness/perf_witness_io.dart:10)
+<asynchronous suspension>
+#6      AnalysisServer.shutdown (package:analysis_server/src/analysis_server.dart:1172)
+<asynchronous suspension>
+#7      LegacyAnalysisServer.shutdown (package:analysis_server/src/legacy_analysis_server.dart:996)
+<asynchronous suspension>
+#8      ServerShutdownHandler.handle (package:analysis_server/src/handler/legacy/server_shutdown.dart:23)
+<asynchronous suspension>
+#9      LegacyAnalysisServer.handleRequest.<anonymous closure>.<anonymous closure> 
+(package:analysis_server/src/legacy_analysis_server.dart:651)
+<asynchronous suspension>
+#10     AsyncSpan.runUnary (package:perf_witness/src/async_span.dart:183)
+<asynchronous suspension>
+#11     OperationPerformanceImpl.runAsync (package:analyzer/src/util/performance/operation_performance.dart:229)
+<asynchronous suspension>
+#12     LegacyAnalysisServer.handleRequest.<anonymous closure> 
+(package:analysis_server/src/legacy_analysis_server.dart:631)
+<asynchronous suspension>
+
+
+null
+[RequestError code: SERVER_ERROR, message: FileSystemException: Cannot delete file, path = 
+'C:\Users\jcfm_\AppData\Local\Dart\perf\14672' (OS Error: El sistema no tiene acceso al archivo, errno = 1920)]
+
+The analysis server shut down unexpectedly.
+Please report this at dartbug.com.
