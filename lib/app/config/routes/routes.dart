@@ -181,6 +181,31 @@ class ScoutFormRoute extends RelativeGoRouteData with $ScoutFormRoute {
       ScoutFormScreen(scoutId: id);
 }
 
+@TypedGoRoute<MatchesRoute>(
+  path: '/matches',
+  name: 'matches',
+  routes: <TypedRelativeGoRoute<RelativeGoRouteData>>[
+    TypedRelativeGoRoute<GameMatchFormRoute>(path: 'form'),
+  ],
+)
+class MatchesRoute extends GoRouteData with $MatchesRoute {
+  const MatchesRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const MatchesScreen();
+}
+
+class GameMatchFormRoute extends RelativeGoRouteData with $GameMatchFormRoute {
+  const GameMatchFormRoute({this.id});
+
+  final int? id;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      GameMatchFormScreen(matchId: id);
+}
+
 // ════════════════════════════════════════════════════════════════════════════
 //  Extensiones push() para routes relativas
 //
@@ -238,6 +263,15 @@ extension ScoutFormRoutePush on ScoutFormRoute {
     Uri(
       path: '/scouts/form',
       queryParameters: {if (id != null) 'id': id!},
+    ).toString(),
+  );
+}
+
+extension GameMatchFormRoutePush on GameMatchFormRoute {
+  Future<T?> push<T>(BuildContext context) => context.push<T>(
+    Uri(
+      path: '/matches/form',
+      queryParameters: {if (id != null) 'id': id!.toString()},
     ).toString(),
   );
 }

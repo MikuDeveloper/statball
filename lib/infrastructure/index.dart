@@ -15,3 +15,6 @@ export 'helpers/exceptions/player_api_exception.dart';
 
 export 'driven_adapter/scout/scout_api.dart';
 export 'helpers/exceptions/scout_api_exception.dart';
+
+export 'driven_adapter/game_match/game_match_api.dart';
+export 'helpers/exceptions/game_match_api_exception.dart';

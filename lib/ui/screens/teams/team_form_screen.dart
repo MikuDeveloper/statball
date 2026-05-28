@@ -426,9 +426,8 @@ class _SchoolPicker extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(schoolsProvider);
-    final control =
-        (ReactiveForm.of(context) as FormGroup?)!.control('schoolId')
-            as FormControl<int>;
+    // ReactiveDropdownField se enlaza vía formControlName, no necesitamos
+    // resolver el FormControl manualmente.
 
     return async.when(
       loading: () => const _PickerSkeleton(message: 'Cargando escuelas...'),
@@ -440,7 +439,7 @@ class _SchoolPicker extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _SchoolDropdown(control: control, schools: valid),
+            _SchoolDropdown(formControlName: 'schoolId', schools: valid),
             const SizedBox(height: 8),
             TextButton.icon(
               onPressed: () => const SchoolFormRoute().push<void>(context),
@@ -463,40 +462,35 @@ class _SchoolPicker extends ConsumerWidget {
 }
 
 class _SchoolDropdown extends StatelessWidget {
-  final FormControl<int> control;
+  // ReactiveDropdownField se enlaza al FormControl vía formControlName,
+  // así no necesitamos pasar el FormControl directamente.
+  final String formControlName;
   final List<School> schools;
-  const _SchoolDropdown({required this.control, required this.schools});
+  const _SchoolDropdown({required this.formControlName, required this.schools});
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<int?>(
-      stream: control.valueChanges,
-      initialData: control.value,
-      builder: (context, snapshot) {
-        return DropdownButtonFormField<int>(
-          initialValue: snapshot.data,
-          isExpanded: true,
-          hint: const Text(
-            'Selecciona una escuela',
-            style: TextStyle(color: AppColors.textMuted),
-          ),
-          decoration: _fieldDecoration('Selecciona una escuela'),
-          items: schools
-              .map(
-                (s) => DropdownMenuItem<int>(
-                  value: s.id,
-                  child: Text(
-                    s.name,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: AppColors.textPrimary),
-                  ),
-                ),
-              )
-              .toList(),
-          onChanged: (v) => control.value = v,
-          validator: (v) => v == null ? 'Requerido' : null,
-        );
-      },
+    return ReactiveDropdownField<int>(
+      formControlName: formControlName,
+      isExpanded: true,
+      hint: const Text(
+        'Selecciona una escuela',
+        style: TextStyle(color: AppColors.textMuted),
+      ),
+      decoration: _fieldDecoration('Selecciona una escuela'),
+      items: schools
+          .map(
+            (s) => DropdownMenuItem<int>(
+              value: s.id,
+              child: Text(
+                s.name,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: AppColors.textPrimary),
+              ),
+            ),
+          )
+          .toList(),
+      validationMessages: {ValidationMessage.required: (_) => 'Requerido'},
     );
   }
 }

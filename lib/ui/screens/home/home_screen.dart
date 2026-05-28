@@ -88,6 +88,11 @@ class _HomeScreenState extends State<HomeScreen> {
       const PlayersRoute().push<void>(context);
     } else if (index == 2) {
       const SchoolsRoute().push<void>(context);
+    } else if (index == 3) {
+      // Item 3 antes era "Estadísticas" (placeholder). Lo wireamos a Partidos
+      // hasta que FASE 3 traiga las stats; el label del SbBottomNav cambia
+      // en paralelo a "Partidos".
+      const MatchesRoute().push<void>(context);
     }
   }
 
@@ -104,7 +109,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _goToNewVisoria() {
-    // TODO: Navigator.push → NewVisoriaScreen
+    // Abre el form para programar un nuevo partido (visoría).
+    const GameMatchFormRoute().push<void>(context);
   }
 
   void _goToActiveVisoria() {
