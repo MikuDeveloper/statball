@@ -708,18 +708,16 @@ class _TeamPicker extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(teamsProvider);
-    final control =
-        (ReactiveForm.of(context) as FormGroup?)!.control('teamId')
-            as FormControl<String>;
 
     return async.when(
       loading: () => const _PickerSkeleton(message: 'Cargando equipos...'),
       error: (e, _) => _PickerSkeleton(message: 'No se pudo cargar: $e'),
       data: (teams) {
+        final valid = teams.where((t) => t.id != null).toList();
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _TeamDropdown(control: control, teams: teams),
+            _TeamDropdown(teams: valid),
             const SizedBox(height: 8),
             TextButton.icon(
               onPressed: () => TeamFormRoute().push<void>(context),
@@ -741,60 +739,42 @@ class _TeamPicker extends ConsumerWidget {
   }
 }
 
+// Dropdown nullable usando ReactiveDropdownField:
+// - Item "Sin equipo" con value=null permite limpiar la selección sin botón externo.
+// - ReactiveDropdownField se enlaza al FormControl<String> (que acepta null).
 class _TeamDropdown extends StatelessWidget {
-  final FormControl<String> control;
   final List<Team> teams;
-  const _TeamDropdown({required this.control, required this.teams});
+  const _TeamDropdown({required this.teams});
 
   @override
   Widget build(BuildContext context) {
-    final valid = teams.where((t) => t.id != null).toList();
-    return StreamBuilder<String?>(
-      stream: control.valueChanges,
-      initialData: control.value,
-      builder: (context, snapshot) {
-        return DropdownButtonFormField<String?>(
-          initialValue: snapshot.data,
-          isExpanded: true,
-          hint: const Text(
+    return ReactiveDropdownField<String>(
+      formControlName: 'teamId',
+      isExpanded: true,
+      hint: const Text(
+        'Sin equipo',
+        style: TextStyle(color: AppColors.textMuted),
+      ),
+      decoration: _decoration('Sin equipo'),
+      items: [
+        const DropdownMenuItem<String>(
+          value: null,
+          child: Text(
             'Sin equipo',
             style: TextStyle(color: AppColors.textMuted),
           ),
-          decoration: _decoration('Sin equipo').copyWith(
-            suffixIcon: snapshot.data == null
-                ? null
-                : IconButton(
-                    tooltip: 'Quitar equipo',
-                    icon: const Icon(
-                      Icons.clear_rounded,
-                      size: 18,
-                      color: AppColors.textMuted,
-                    ),
-                    onPressed: () => control.value = null,
-                  ),
+        ),
+        ...teams.map(
+          (t) => DropdownMenuItem<String>(
+            value: t.id,
+            child: Text(
+              '${t.name} · ${t.category}',
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: AppColors.textPrimary),
+            ),
           ),
-          items: <DropdownMenuItem<String?>>[
-            const DropdownMenuItem<String?>(
-              value: null,
-              child: Text(
-                'Sin equipo',
-                style: TextStyle(color: AppColors.textMuted),
-              ),
-            ),
-            ...valid.map(
-              (t) => DropdownMenuItem<String?>(
-                value: t.id,
-                child: Text(
-                  '${t.name} · ${t.category}',
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: AppColors.textPrimary),
-                ),
-              ),
-            ),
-          ],
-          onChanged: (v) => control.value = v,
-        );
-      },
+        ),
+      ],
     );
   }
 }

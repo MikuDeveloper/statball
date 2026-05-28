@@ -10,6 +10,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 import 'package:statball/app/global/enums.dart';
+import 'package:statball/app/providers/forms/game_match_form_provider.dart';
+import 'package:statball/app/providers/global/game_matches_provider.dart';
+import 'package:statball/app/providers/repositories/game_match_use_case_provider.dart';
 import 'package:statball/app/providers/forms/player_form_provider.dart';
 import 'package:statball/app/providers/forms/school_form_provider.dart';
 import 'package:statball/app/providers/forms/school_principal_form_provider.dart';
@@ -88,6 +91,31 @@ void main() {
       expect(json['phone_number'], '+52');
     });
 
+    test('GameMatch + relativeLabel + isUpcoming/isPast', () {
+      // Match futuro: en 3 días
+      final future = DateTime.now().add(const Duration(days: 3));
+      final m1 = GameMatch(
+        id: 1,
+        date: future,
+        localTeamId: 'team-a',
+        visitorTeamId: 'team-b',
+      );
+      expect(m1.isUpcoming, isTrue);
+      expect(m1.isPast, isFalse);
+      expect(m1.relativeLabel, contains('días'));
+
+      // Match pasado: hace 2 días
+      final past = DateTime.now().subtract(const Duration(days: 2));
+      final m2 = m1.copyWith(date: past);
+      expect(m2.isPast, isTrue);
+      expect(m2.relativeLabel, contains('Hace'));
+
+      // JSON roundtrip
+      final back = GameMatch.fromJson(m1.toJson());
+      expect(back.localTeamId, 'team-a');
+      expect(back.visitorTeamId, 'team-b');
+    });
+
     test('Enums fromDb match valores Postgres exactos', () {
       expect(TeamGender.fromDb('Masculino'), TeamGender.masculino);
       expect(TeamGender.fromDb('Femenino'), TeamGender.femenino);
@@ -156,5 +184,74 @@ void main() {
       });
       expect(r.form.valid, isTrue);
     });
+
+    test('gameMatchesProvider — getters upcoming/past compilan y filtran', () async {
+      // Este test EXISTE específicamente porque el provider usaba
+      // `import ... show GameMatch` y las extensions `isUpcoming/isPast`
+      // no entraban en scope, bloqueando la compilación en Windows pero
+      // NO en flutter test (porque el archivo de tests sí las importaba).
+      // Si esto pasa, el provider compiló con extensions resueltas.
+      //
+      // Overrideamos el use case para no llamar a Supabase real.
+      final fakeUseCase = _FakeGameMatchUseCase([
+        GameMatch(
+          id: 1,
+          date: DateTime.now().add(const Duration(days: 1)),
+          localTeamId: 'a',
+          visitorTeamId: 'b',
+        ),
+        GameMatch(
+          id: 2,
+          date: DateTime.now().subtract(const Duration(days: 1)),
+          localTeamId: 'c',
+          visitorTeamId: 'd',
+        ),
+      ]);
+      final c = ProviderContainer(
+        overrides: [
+          gameMatchUseCaseProvider.overrideWithValue(fakeUseCase),
+        ],
+      );
+      addTearDown(c.dispose);
+      await c.read(gameMatchesProvider.future);
+      final notifier = c.read(gameMatchesProvider.notifier);
+      expect(notifier.upcoming.length, 1);
+      expect(notifier.past.length, 1);
+    });
+
+    test('gameMatchForm — valida local ≠ visitor (cross-field)', () {
+      final r = container.read(gameMatchFormProvider);
+      expect(r.form.valid, isFalse);
+      // Misma uuid en local y visitor → debe ser invalid con error 'sameTeam'
+      r.form.patchValue({
+        'date': DateTime.now().add(const Duration(days: 1)),
+        'localTeamId': 'uuid-x',
+        'visitorTeamId': 'uuid-x',
+      });
+      expect(r.form.valid, isFalse, reason: 'Mismo equipo no debe pasar');
+      expect(r.form.errors['sameTeam'], isTrue);
+      // Equipos distintos → valid
+      r.form.control('visitorTeamId').value = 'uuid-y';
+      expect(r.form.valid, isTrue);
+    });
   });
+}
+
+// Fake mínimo que solo implementa lo que el provider de matches llama
+// (getAll en build). Los demás métodos no se usan en este test.
+class _FakeGameMatchUseCase implements GameMatchUseCase {
+  _FakeGameMatchUseCase(this._data);
+  final List<GameMatch> _data;
+
+  @override
+  Future<List<GameMatch>> getAll() async => _data;
+
+  @override
+  Future<GameMatch> getById(int id) => throw UnimplementedError();
+  @override
+  Future<GameMatch> create(GameMatch m) => throw UnimplementedError();
+  @override
+  Future<GameMatch> update(GameMatch m) => throw UnimplementedError();
+  @override
+  Future<void> delete(int id) => throw UnimplementedError();
 }

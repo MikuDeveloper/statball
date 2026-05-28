@@ -649,9 +649,11 @@ class SbBottomNav extends StatelessWidget {
       label: 'Escuelas',
     ),
     _NavItem(
-      icon: Icons.bar_chart_outlined,
-      activeIcon: Icons.bar_chart_rounded,
-      label: 'Estadísticas',
+      // FASE 2: wireado a /matches. Las estadísticas vendrán en FASE 3 y
+      // este item se podrá mover o duplicar.
+      icon: Icons.sports_soccer_outlined,
+      activeIcon: Icons.sports_soccer_rounded,
+      label: 'Partidos',
     ),
   ];
 

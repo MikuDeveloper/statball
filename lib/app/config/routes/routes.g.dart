@@ -16,6 +16,7 @@ List<RouteBase> get $appRoutes => [
   $teamsRoute,
   $playersRoute,
   $scoutsRoute,
+  $matchesRoute,
 ];
 
 RouteBase get $rootRoute =>
@@ -473,6 +474,71 @@ mixin $ScoutFormRoute on RelativeGoRouteData {
   String get subLocation => RelativeGoRouteData.$location(
     'form',
     queryParams: {if (_self.id != null) 'id': _self.id},
+  );
+
+  @override
+  String get relativeLocation => './$subLocation';
+
+  @override
+  void goRelative(BuildContext context) => context.go(relativeLocation);
+
+  @override
+  Future<T?> pushRelative<T>(BuildContext context) =>
+      context.push<T>(relativeLocation);
+
+  @override
+  void pushReplacementRelative(BuildContext context) =>
+      context.pushReplacement(relativeLocation);
+
+  @override
+  void replaceRelative(BuildContext context) =>
+      context.replace(relativeLocation);
+}
+
+RouteBase get $matchesRoute => GoRouteData.$route(
+  path: '/matches',
+  name: 'matches',
+  factory: $MatchesRoute._fromState,
+  routes: [
+    RelativeGoRouteData.$route(
+      path: 'form',
+      factory: $GameMatchFormRoute._fromState,
+    ),
+  ],
+);
+
+mixin $MatchesRoute on GoRouteData {
+  static MatchesRoute _fromState(GoRouterState state) => const MatchesRoute();
+
+  @override
+  String get location => GoRouteData.$location('/matches');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $GameMatchFormRoute on RelativeGoRouteData {
+  static GameMatchFormRoute _fromState(GoRouterState state) =>
+      GameMatchFormRoute(
+        id: _$convertMapValue('id', state.uri.queryParameters, int.tryParse),
+      );
+
+  GameMatchFormRoute get _self => this as GameMatchFormRoute;
+
+  @override
+  String get subLocation => RelativeGoRouteData.$location(
+    'form',
+    queryParams: {if (_self.id != null) 'id': _self.id!.toString()},
   );
 
   @override

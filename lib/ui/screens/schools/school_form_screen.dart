@@ -406,9 +406,6 @@ class _PrincipalPicker extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(schoolPrincipalsProvider);
-    final control =
-        (ReactiveForm.of(context) as FormGroup?)!.control('principalId')
-            as FormControl<int>;
 
     return async.when(
       loading: () => const _PickerSkeleton(message: 'Cargando directores...'),
@@ -418,7 +415,7 @@ class _PrincipalPicker extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _PrincipalDropdown(control: control, principals: principals),
+            _PrincipalDropdown(principals: principals),
             const SizedBox(height: 8),
             TextButton.icon(
               onPressed: () =>
@@ -441,83 +438,62 @@ class _PrincipalPicker extends ConsumerWidget {
   }
 }
 
+// Dropdown nullable usando ReactiveDropdownField. El item con value=null
+// representa "Sin director" y permite limpiar la selección sin botón externo.
 class _PrincipalDropdown extends StatelessWidget {
-  final FormControl<int> control;
   final List<SchoolPrincipal> principals;
-  const _PrincipalDropdown({required this.control, required this.principals});
+  const _PrincipalDropdown({required this.principals});
 
   @override
   Widget build(BuildContext context) {
-    // Filtra principals válidos (con id) y arma los items del dropdown.
     final valid = principals.where((p) => p.id != null).toList();
 
-    return StreamBuilder<int?>(
-      stream: control.valueChanges,
-      initialData: control.value,
-      builder: (context, snapshot) {
-        return DropdownButtonFormField<int?>(
-          initialValue: snapshot.data,
-          isExpanded: true,
-          hint: const Text(
+    return ReactiveDropdownField<int>(
+      formControlName: 'principalId',
+      isExpanded: true,
+      hint: const Text(
+        'Sin director',
+        style: TextStyle(color: AppColors.textMuted),
+      ),
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: AppColors.card,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 14,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.cardBorder),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.cardBorder),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.accentDark, width: 1.4),
+        ),
+      ),
+      items: [
+        const DropdownMenuItem<int>(
+          value: null,
+          child: Text(
             'Sin director',
             style: TextStyle(color: AppColors.textMuted),
           ),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: AppColors.card,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 14,
+        ),
+        ...valid.map(
+          (p) => DropdownMenuItem<int>(
+            value: p.id,
+            child: Text(
+              p.displayName,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: AppColors.textPrimary),
             ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.cardBorder),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.cardBorder),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: AppColors.accentDark,
-                width: 1.4,
-              ),
-            ),
-            suffixIcon: snapshot.data == null
-                ? null
-                : IconButton(
-                    tooltip: 'Quitar director',
-                    icon: const Icon(
-                      Icons.clear_rounded,
-                      size: 18,
-                      color: AppColors.textMuted,
-                    ),
-                    onPressed: () => control.value = null,
-                  ),
           ),
-          items: <DropdownMenuItem<int?>>[
-            const DropdownMenuItem<int?>(
-              value: null,
-              child: Text(
-                'Sin director',
-                style: TextStyle(color: AppColors.textMuted),
-              ),
-            ),
-            ...valid.map(
-              (p) => DropdownMenuItem<int?>(
-                value: p.id,
-                child: Text(
-                  p.displayName,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: AppColors.textPrimary),
-                ),
-              ),
-            ),
-          ],
-          onChanged: (v) => control.value = v,
-        );
-      },
+        ),
+      ],
     );
   }
 }
