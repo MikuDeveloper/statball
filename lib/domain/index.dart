@@ -25,3 +25,7 @@ export 'use_cases/scout_use_case.dart';
 export 'models/game_match/repository/game_match_repository.dart';
 export 'models/game_match/game_match.dart';
 export 'use_cases/game_match_use_case.dart';
+
+export 'models/scout_match/repository/scout_match_repository.dart';
+export 'models/scout_match/scout_match.dart';
+export 'use_cases/scout_match_use_case.dart';

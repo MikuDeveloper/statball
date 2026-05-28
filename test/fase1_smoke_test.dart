@@ -17,7 +17,10 @@ import 'package:statball/app/providers/forms/player_form_provider.dart';
 import 'package:statball/app/providers/forms/school_form_provider.dart';
 import 'package:statball/app/providers/forms/school_principal_form_provider.dart';
 import 'package:statball/app/providers/forms/scout_form_provider.dart';
+import 'package:statball/app/providers/forms/scout_match_form_provider.dart';
 import 'package:statball/app/providers/forms/team_form_provider.dart';
+import 'package:statball/app/providers/global/scout_matches_provider.dart';
+import 'package:statball/app/providers/repositories/scout_match_use_case_provider.dart';
 import 'package:statball/domain/index.dart';
 
 void main() {
@@ -116,6 +119,20 @@ void main() {
       expect(back.visitorTeamId, 'team-b');
     });
 
+    test('ScoutMatch JSON roundtrip (snake_case)', () {
+      const sm = ScoutMatch(
+        id: 1,
+        matchId: 42,
+        scoutId: 'uuid-scout',
+        notes: 'Enfocarse en mediocampo',
+      );
+      final json = sm.toJson();
+      expect(json['match_id'], 42);
+      expect(json['scout_id'], 'uuid-scout');
+      final back = ScoutMatch.fromJson(json);
+      expect(back, equals(sm));
+    });
+
     test('Enums fromDb match valores Postgres exactos', () {
       expect(TeamGender.fromDb('Masculino'), TeamGender.masculino);
       expect(TeamGender.fromDb('Femenino'), TeamGender.femenino);
@@ -185,39 +202,40 @@ void main() {
       expect(r.form.valid, isTrue);
     });
 
-    test('gameMatchesProvider — getters upcoming/past compilan y filtran', () async {
-      // Este test EXISTE específicamente porque el provider usaba
-      // `import ... show GameMatch` y las extensions `isUpcoming/isPast`
-      // no entraban en scope, bloqueando la compilación en Windows pero
-      // NO en flutter test (porque el archivo de tests sí las importaba).
-      // Si esto pasa, el provider compiló con extensions resueltas.
-      //
-      // Overrideamos el use case para no llamar a Supabase real.
-      final fakeUseCase = _FakeGameMatchUseCase([
-        GameMatch(
-          id: 1,
-          date: DateTime.now().add(const Duration(days: 1)),
-          localTeamId: 'a',
-          visitorTeamId: 'b',
-        ),
-        GameMatch(
-          id: 2,
-          date: DateTime.now().subtract(const Duration(days: 1)),
-          localTeamId: 'c',
-          visitorTeamId: 'd',
-        ),
-      ]);
-      final c = ProviderContainer(
-        overrides: [
-          gameMatchUseCaseProvider.overrideWithValue(fakeUseCase),
-        ],
-      );
-      addTearDown(c.dispose);
-      await c.read(gameMatchesProvider.future);
-      final notifier = c.read(gameMatchesProvider.notifier);
-      expect(notifier.upcoming.length, 1);
-      expect(notifier.past.length, 1);
-    });
+    test(
+      'gameMatchesProvider — getters upcoming/past compilan y filtran',
+      () async {
+        // Este test EXISTE específicamente porque el provider usaba
+        // `import ... show GameMatch` y las extensions `isUpcoming/isPast`
+        // no entraban en scope, bloqueando la compilación en Windows pero
+        // NO en flutter test (porque el archivo de tests sí las importaba).
+        // Si esto pasa, el provider compiló con extensions resueltas.
+        //
+        // Overrideamos el use case para no llamar a Supabase real.
+        final fakeUseCase = _FakeGameMatchUseCase([
+          GameMatch(
+            id: 1,
+            date: DateTime.now().add(const Duration(days: 1)),
+            localTeamId: 'a',
+            visitorTeamId: 'b',
+          ),
+          GameMatch(
+            id: 2,
+            date: DateTime.now().subtract(const Duration(days: 1)),
+            localTeamId: 'c',
+            visitorTeamId: 'd',
+          ),
+        ]);
+        final c = ProviderContainer(
+          overrides: [gameMatchUseCaseProvider.overrideWithValue(fakeUseCase)],
+        );
+        addTearDown(c.dispose);
+        await c.read(gameMatchesProvider.future);
+        final notifier = c.read(gameMatchesProvider.notifier);
+        expect(notifier.upcoming.length, 1);
+        expect(notifier.past.length, 1);
+      },
+    );
 
     test('gameMatchForm — valida local ≠ visitor (cross-field)', () {
       final r = container.read(gameMatchFormProvider);
@@ -234,6 +252,43 @@ void main() {
       r.form.control('visitorTeamId').value = 'uuid-y';
       expect(r.form.valid, isTrue);
     });
+
+    test('scoutMatchForm — scout required, notes opcional', () {
+      final r = container.read(scoutMatchFormProvider);
+      expect(r.form.valid, isFalse, reason: 'Sin scout no es válido');
+      r.form.control('scoutId').value = 'uuid-scout';
+      expect(
+        r.form.valid,
+        isTrue,
+        reason: 'Con scout y sin notas debe ser válido',
+      );
+    });
+
+    test(
+      'scoutMatchesProvider(family) — assign/remove actualizan estado',
+      () async {
+        // Family provider scoped por matchId. Override del use case para no
+        // tocar Supabase. Verifica el ciclo assign → assignedScoutIds → remove.
+        final fake = _FakeScoutMatchUseCase();
+        final c = ProviderContainer(
+          overrides: [scoutMatchUseCaseProvider.overrideWithValue(fake)],
+        );
+        addTearDown(c.dispose);
+
+        const matchId = 7;
+        await c.read(scoutMatchesProvider(matchId).future);
+        final notifier = c.read(scoutMatchesProvider(matchId).notifier);
+
+        expect(notifier.assignedScoutIds, isEmpty);
+        await notifier.assign(scoutId: 'scout-1', notes: 'nota');
+        expect(notifier.assignedScoutIds, contains('scout-1'));
+
+        // El id lo asigna el fake incrementalmente; removemos el primero.
+        final created = c.read(scoutMatchesProvider(matchId)).value!.first;
+        await notifier.remove(created.id!);
+        expect(notifier.assignedScoutIds, isEmpty);
+      },
+    );
   });
 }
 
@@ -254,4 +309,37 @@ class _FakeGameMatchUseCase implements GameMatchUseCase {
   Future<GameMatch> update(GameMatch m) => throw UnimplementedError();
   @override
   Future<void> delete(int id) => throw UnimplementedError();
+}
+
+// Fake in-memory para scout_match: simula assign (asigna id incremental),
+// getByMatch (devuelve lo acumulado) y delete.
+class _FakeScoutMatchUseCase implements ScoutMatchUseCase {
+  final List<ScoutMatch> _store = [];
+  int _seq = 0;
+
+  @override
+  Future<List<ScoutMatch>> getByMatch(int matchId) async =>
+      _store.where((s) => s.matchId == matchId).toList();
+
+  @override
+  Future<ScoutMatch> create(ScoutMatch sm) async {
+    final created = ScoutMatch(
+      id: ++_seq,
+      matchId: sm.matchId,
+      scoutId: sm.scoutId,
+      notes: sm.notes,
+    );
+    _store.add(created);
+    return created;
+  }
+
+  @override
+  Future<ScoutMatch> update(ScoutMatch sm) async {
+    final idx = _store.indexWhere((s) => s.id == sm.id);
+    if (idx != -1) _store[idx] = sm;
+    return sm;
+  }
+
+  @override
+  Future<void> delete(int id) async => _store.removeWhere((s) => s.id == id);
 }

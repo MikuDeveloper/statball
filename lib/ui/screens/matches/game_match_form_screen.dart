@@ -12,6 +12,8 @@ import 'package:statball/infrastructure/index.dart' show GameMatchApiException;
 import 'package:statball/ui/common/forms/sb_field_label.dart';
 import 'package:statball/ui/common/utils/snackbars_mixin.dart';
 
+import 'widgets/match_scouts_section.dart';
+
 // ════════════════════════════════════════════════════════════════════════════
 //  GAME MATCH FORM SCREEN — programa o edita un partido.
 //  Validación cross-field: localTeamId ≠ visitorTeamId (en el form group +
@@ -185,37 +187,14 @@ class _GameMatchFormScreenState extends ConsumerState<GameMatchFormScreen>
                   ),
                   const SizedBox(height: 32),
 
-                  if (_isEdit)
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: AppColors.card,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.cardBorder),
-                      ),
-                      child: const Row(
-                        children: [
-                          Icon(
-                            Icons.info_outline_rounded,
-                            color: AppColors.textMuted,
-                            size: 18,
-                          ),
-                          SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              'La asignación de scouts a este partido se '
-                              'habilitará en la próxima feature.',
-                              style: TextStyle(
-                                color: AppColors.textMuted,
-                                fontSize: 12.5,
-                                height: 1.4,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  if (_isEdit) const SizedBox(height: 24),
+                  // En modo edición ya existe match.id, así que podemos
+                  // gestionar asignaciones de scouts (CRUD inmediato).
+                  if (_isEdit) ...[
+                    const _SectionTitle('Scouts asignados'),
+                    const SizedBox(height: 12),
+                    MatchScoutsSection(matchId: widget.matchId!),
+                    const SizedBox(height: 24),
+                  ],
 
                   ReactiveFormConsumer(
                     builder: (_, fg, _) {
