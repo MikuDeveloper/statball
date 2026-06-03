@@ -87,21 +87,19 @@ class _MyAssignmentsScreenState extends ConsumerState<MyAssignmentsScreen>
       body: stateAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => _ErrorState(message: e.toString()),
-        data: (s) => TabBarView(
-          controller: _tabs,
-          children: [
-            _AssignmentList(
-              assignments: ref.read(myAssignmentsProvider.notifier).upcoming,
-              emptyReason: s.assignments.isEmpty ? s.emptyReason : null,
-              tab: _Tab.upcoming,
-            ),
-            _AssignmentList(
-              assignments: ref.read(myAssignmentsProvider.notifier).past,
-              emptyReason: s.assignments.isEmpty ? s.emptyReason : null,
-              tab: _Tab.past,
-            ),
-          ],
-        ),
+        data: (_) {
+          final notifier = ref.read(myAssignmentsProvider.notifier);
+          return TabBarView(
+            controller: _tabs,
+            children: [
+              _AssignmentList(
+                assignments: notifier.upcoming,
+                tab: _Tab.upcoming,
+              ),
+              _AssignmentList(assignments: notifier.past, tab: _Tab.past),
+            ],
+          );
+        },
       ),
     );
   }
@@ -112,25 +110,14 @@ enum _Tab { upcoming, past }
 // ─── _AssignmentList ─────────────────────────────────────────────────────────
 class _AssignmentList extends ConsumerWidget {
   final List<ScoutMatch> assignments;
-  final MyAssignmentsEmptyReason? emptyReason;
   final _Tab tab;
 
-  const _AssignmentList({
-    required this.assignments,
-    required this.emptyReason,
-    required this.tab,
-  });
+  const _AssignmentList({required this.assignments, required this.tab});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Empty state global (usuario sin vínculo o sin ninguna asignación)
-    if (emptyReason != null) {
-      return _EmptyState(reason: emptyReason!);
-    }
-
-    // Lista vacía dentro de un tab (tiene asignaciones, pero no en este tab)
     if (assignments.isEmpty) {
-      return _TabEmptyState(tab: tab);
+      return _EmptyState(tab: tab);
     }
 
     return ListView.separated(
@@ -140,8 +127,7 @@ class _AssignmentList extends ConsumerWidget {
       separatorBuilder: (_, _) => const SizedBox(height: 10),
       itemBuilder: (_, i) {
         final sm = assignments[i];
-        final matchesNotifier = ref.read(gameMatchesProvider.notifier);
-        final match = matchesNotifier.byId(sm.matchId);
+        final match = ref.read(gameMatchesProvider.notifier).byId(sm.matchId);
         final teams = ref.read(teamsProvider).value ?? const [];
         final local = match != null
             ? _teamById(teams, match.localTeamId)
@@ -235,7 +221,7 @@ class _AssignmentCard extends StatelessWidget {
             const Divider(height: 1, color: AppColors.divider),
             const SizedBox(height: 10),
 
-            // ── Body: LOCAL vs VISIT badges ────────────────────────────────
+            // ── Body: LOCAL vs VISIT ────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Row(
@@ -350,23 +336,17 @@ class _TeamSide extends StatelessWidget {
 // ─── Empty states ────────────────────────────────────────────────────────────
 
 class _EmptyState extends StatelessWidget {
-  final MyAssignmentsEmptyReason reason;
-  const _EmptyState({required this.reason});
+  final _Tab tab;
+  const _EmptyState({required this.tab});
 
   @override
   Widget build(BuildContext context) {
-    final (icon, title, message) = switch (reason) {
-      MyAssignmentsEmptyReason.noScoutLink => (
-        Icons.account_circle_outlined,
-        'Sin perfil de scout',
-        'Aún no tienes un perfil de scout vinculado a tu cuenta. '
-            'Pídele a tu coordinador que te vincule.',
+    final (icon, message) = switch (tab) {
+      _Tab.upcoming => (
+        Icons.event_outlined,
+        'No tienes visorías próximas asignadas.',
       ),
-      MyAssignmentsEmptyReason.noAssignments => (
-        Icons.assignment_outlined,
-        'Sin visorías asignadas',
-        'Aún no tienes visorías asignadas.',
-      ),
+      _Tab.past => (Icons.history_rounded, 'No hay visorías pasadas aún.'),
     };
 
     return Center(
@@ -375,47 +355,19 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 56, color: AppColors.textMuted),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
+            Icon(icon, size: 52, color: AppColors.textMuted),
+            const SizedBox(height: 14),
             Text(
               message,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 13.5,
+                fontSize: 14,
                 color: AppColors.textMuted,
                 height: 1.5,
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _TabEmptyState extends StatelessWidget {
-  final _Tab tab;
-  const _TabEmptyState({required this.tab});
-
-  @override
-  Widget build(BuildContext context) {
-    final message = tab == _Tab.upcoming
-        ? 'No tienes visorías próximas.'
-        : 'No hay visorías pasadas aún.';
-    return Center(
-      child: Text(
-        message,
-        style: const TextStyle(fontSize: 14, color: AppColors.textMuted),
       ),
     );
   }

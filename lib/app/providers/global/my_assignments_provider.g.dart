@@ -13,7 +13,7 @@ part of 'my_assignments_provider.dart';
 final myAssignmentsProvider = MyAssignmentsProvider._();
 
 final class MyAssignmentsProvider
-    extends $AsyncNotifierProvider<MyAssignments, MyAssignmentsState> {
+    extends $AsyncNotifierProvider<MyAssignments, List<ScoutMatch>> {
   MyAssignmentsProvider._()
     : super(
         from: null,
@@ -33,20 +33,20 @@ final class MyAssignmentsProvider
   MyAssignments create() => MyAssignments();
 }
 
-String _$myAssignmentsHash() => r'793069583c74fafe927d6355ce6adb51670c07a6';
+String _$myAssignmentsHash() => r'67a494c8b58dd2ca2f44e990aa46b1eb1d4f64ee';
 
-abstract class _$MyAssignments extends $AsyncNotifier<MyAssignmentsState> {
-  FutureOr<MyAssignmentsState> build();
+abstract class _$MyAssignments extends $AsyncNotifier<List<ScoutMatch>> {
+  FutureOr<List<ScoutMatch>> build();
   @$mustCallSuper
   @override
   void runBuild() {
     final ref =
-        this.ref as $Ref<AsyncValue<MyAssignmentsState>, MyAssignmentsState>;
+        this.ref as $Ref<AsyncValue<List<ScoutMatch>>, List<ScoutMatch>>;
     final element =
         ref.element
             as $ClassProviderElement<
-              AnyNotifier<AsyncValue<MyAssignmentsState>, MyAssignmentsState>,
-              AsyncValue<MyAssignmentsState>,
+              AnyNotifier<AsyncValue<List<ScoutMatch>>, List<ScoutMatch>>,
+              AsyncValue<List<ScoutMatch>>,
               Object?,
               Object?
             >;

@@ -73,30 +73,25 @@ void main() {
     );
   }
 
-  group('MyAssignmentsEmptyReason — enum', () {
-    test('tiene los valores esperados', () {
-      expect(MyAssignmentsEmptyReason.values.length, 2);
-      expect(
-        MyAssignmentsEmptyReason.values,
-        containsAll([
-          MyAssignmentsEmptyReason.noScoutLink,
-          MyAssignmentsEmptyReason.noAssignments,
-        ]),
-      );
-    });
-  });
-
   group('myAssignmentsProvider — con asignaciones', () {
-    test('estado carga assignments y emptyReason es null', () async {
+    test('devuelve la lista completa', () async {
       final c = makeContainer([upcomingAssignment, pastAssignment]);
       addTearDown(c.dispose);
 
-      // Necesitamos que gameMatchesProvider cargue primero para que byId funcione
       await c.read(gameMatchesProvider.future);
-      final state = await c.read(myAssignmentsProvider.future);
+      final assignments = await c.read(myAssignmentsProvider.future);
 
-      expect(state.assignments.length, 2);
-      expect(state.emptyReason, isNull);
+      expect(assignments.length, 2);
+    });
+
+    test('lista vacía cuando no hay asignaciones', () async {
+      final c = makeContainer([]);
+      addTearDown(c.dispose);
+
+      await c.read(gameMatchesProvider.future);
+      final assignments = await c.read(myAssignmentsProvider.future);
+
+      expect(assignments, isEmpty);
     });
 
     test('getter upcoming filtra por partidos futuros', () async {
@@ -148,21 +143,17 @@ void main() {
     });
   });
 
-  group('unlinkedScoutProfiles — Provider fakes', () {
-    test(
-      'FakeScoutMatchUseCase.getMyAssignments devuelve store completo',
-      () async {
-        final fake = FakeScoutMatchUseCase();
-        // Crear vía create para que se almacenen con id
-        await fake.create(
-          const ScoutMatch(matchId: 1, scoutId: 'scout-1', notes: ''),
-        );
-        await fake.create(
-          const ScoutMatch(matchId: 2, scoutId: 'scout-2', notes: 'test'),
-        );
-        final all = await fake.getMyAssignments();
-        expect(all.length, 2);
-      },
-    );
+  group('FakeScoutMatchUseCase — getMyAssignments', () {
+    test('devuelve el store completo', () async {
+      final fake = FakeScoutMatchUseCase();
+      await fake.create(
+        const ScoutMatch(matchId: 1, scoutId: 'scout-1', notes: ''),
+      );
+      await fake.create(
+        const ScoutMatch(matchId: 2, scoutId: 'scout-2', notes: 'test'),
+      );
+      final all = await fake.getMyAssignments();
+      expect(all.length, 2);
+    });
   });
 }
