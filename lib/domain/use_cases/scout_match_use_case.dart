@@ -17,4 +17,6 @@ class ScoutMatchUseCase {
       _repository.update(scoutMatch);
 
   Future<void> delete(int id) => _repository.delete(id);
+
+  Future<List<ScoutMatch>> getMyAssignments() => _repository.getMyAssignments();
 }

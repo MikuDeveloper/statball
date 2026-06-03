@@ -17,6 +17,7 @@ List<RouteBase> get $appRoutes => [
   $playersRoute,
   $scoutsRoute,
   $matchesRoute,
+  $myAssignmentsRoute,
 ];
 
 RouteBase get $rootRoute =>
@@ -558,4 +559,31 @@ mixin $GameMatchFormRoute on RelativeGoRouteData {
   @override
   void replaceRelative(BuildContext context) =>
       context.replace(relativeLocation);
+}
+
+RouteBase get $myAssignmentsRoute => GoRouteData.$route(
+  path: '/my-assignments',
+  name: 'my_assignments',
+  factory: $MyAssignmentsRoute._fromState,
+);
+
+mixin $MyAssignmentsRoute on GoRouteData {
+  static MyAssignmentsRoute _fromState(GoRouterState state) =>
+      const MyAssignmentsRoute();
+
+  @override
+  String get location => GoRouteData.$location('/my-assignments');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
 }

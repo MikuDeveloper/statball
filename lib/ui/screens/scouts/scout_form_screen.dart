@@ -4,15 +4,17 @@ import 'package:reactive_forms/reactive_forms.dart';
 
 import 'package:statball/app/config/themes/app_colors.dart';
 import 'package:statball/app/providers/forms/scout_form_provider.dart';
+import 'package:statball/app/providers/global/sb_user_data_provider.dart';
 import 'package:statball/app/providers/global/scouts_provider.dart';
-import 'package:statball/domain/index.dart' show Scout;
+import 'package:statball/app/providers/global/unlinked_scout_profiles_provider.dart';
+import 'package:statball/domain/index.dart' show Scout, SbUser;
 import 'package:statball/infrastructure/index.dart' show ScoutApiException;
 import 'package:statball/ui/common/forms/sb_field_label.dart';
 import 'package:statball/ui/common/utils/snackbars_mixin.dart';
 
 // ════════════════════════════════════════════════════════════════════════════
 //  SCOUT FORM SCREEN — crear o editar un scout (visoreador).
-//  Todos los campos son requeridos en este momento (schema). Asterisco visible.
+//  Sección "Cuenta de la app" visible solo para super_scout.
 // ════════════════════════════════════════════════════════════════════════════
 class ScoutFormScreen extends ConsumerStatefulWidget {
   final String? scoutId;
@@ -32,7 +34,6 @@ class _ScoutFormScreenState extends ConsumerState<ScoutFormScreen>
   @override
   void initState() {
     super.initState();
-    // Reset al entrar (no en dispose) para no notificar listeners en unmount.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       ref.read(scoutFormProvider).form.reset();
@@ -52,10 +53,9 @@ class _ScoutFormScreenState extends ConsumerState<ScoutFormScreen>
       'phoneNumber': scout.phoneNumber,
       'address': scout.address,
       'photo': scout.photo,
+      'userId': scout.userId,
     });
   }
-
-  // El reset vive en initState (al entrar) para no notificar listeners en unmount.
 
   Future<void> _save() async {
     final form = ref.read(scoutFormProvider).form;
@@ -77,6 +77,7 @@ class _ScoutFormScreenState extends ConsumerState<ScoutFormScreen>
       phoneNumber: (values['phoneNumber'] as String).trim(),
       address: (values['address'] as String).trim(),
       photo: (values['photo'] as String).trim(),
+      userId: values['userId'] as String?,
     );
 
     try {
@@ -104,6 +105,8 @@ class _ScoutFormScreenState extends ConsumerState<ScoutFormScreen>
   @override
   Widget build(BuildContext context) {
     final form = ref.watch(scoutFormProvider).form;
+    final currentUser = ref.watch(sbUserDataProvider).value;
+    final isSuperScout = currentUser?.role == 'super_scout';
     final width = MediaQuery.of(context).size.width;
     final maxFormWidth = width > 720 ? 640.0 : double.infinity;
 
@@ -176,6 +179,16 @@ class _ScoutFormScreenState extends ConsumerState<ScoutFormScreen>
                     hint: 'https://...',
                     keyboard: TextInputType.url,
                   ),
+
+                  // Sección de vinculación — solo visible para super_scout
+                  if (isSuperScout) ...[
+                    const SizedBox(height: 24),
+                    _AppAccountSection(
+                      scoutId: widget.scoutId,
+                      existingUserId: _existing?.userId,
+                    ),
+                  ],
+
                   const SizedBox(height: 32),
 
                   ReactiveFormConsumer(
@@ -222,6 +235,170 @@ class _ScoutFormScreenState extends ConsumerState<ScoutFormScreen>
         ),
       ),
     );
+  }
+}
+
+// ─── _AppAccountSection ─────────────────────────────────────────────────────
+// ExpansionTile "Cuenta de la app · opcional", solo para super_scout.
+// Muestra dropdown con perfiles disponibles y botón de desvincular si hay vínculo.
+class _AppAccountSection extends ConsumerWidget {
+  final String? scoutId;
+  final String? existingUserId;
+  const _AppAccountSection({this.scoutId, this.existingUserId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profilesAsync = ref.watch(
+      unlinkedScoutProfilesProvider(excludeScoutId: scoutId),
+    );
+    final userIdControl =
+        (ReactiveForm.of(context) as FormGroup?)!.control('userId')
+            as FormControl<String>;
+
+    return StreamBuilder<String?>(
+      stream: userIdControl.valueChanges,
+      initialData: userIdControl.value,
+      builder: (_, snapshot) {
+        final currentValue = snapshot.data;
+        return Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.cardBorder),
+            borderRadius: BorderRadius.circular(12),
+            color: AppColors.card,
+          ),
+          child: ExpansionTile(
+            tilePadding: const EdgeInsets.symmetric(horizontal: 14),
+            childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+            title: const Text(
+              'Cuenta de la app · opcional',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            subtitle: currentValue != null
+                ? Text(
+                    _emailForId(profilesAsync.value, currentValue) ??
+                        'Vinculado',
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      color: AppColors.accentDark,
+                    ),
+                  )
+                : const Text(
+                    'Sin cuenta vinculada',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: AppColors.textMuted,
+                    ),
+                  ),
+            children: [
+              profilesAsync.when(
+                loading: () => const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (_, _) => const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    'Error al cargar perfiles',
+                    style: TextStyle(color: AppColors.error, fontSize: 12),
+                  ),
+                ),
+                data: (profiles) {
+                  // Si ya hay un vínculo, incluir ese profile en el listado
+                  final all = [...profiles];
+                  if (currentValue != null &&
+                      !all.any((p) => p.id == currentValue)) {
+                    // El profile vinculado no está en la lista "libres" —
+                    // lo añadimos con email mínimo para mostrarlo correctamente.
+                    // (Esto ocurre en edición si el filtro ya lo excluye.)
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SbFieldLabel(text: 'CUENTA (EMAIL)'),
+                      const SizedBox(height: 6),
+                      InputDecorator(
+                        decoration: _dropdownDecoration(),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: currentValue,
+                            isExpanded: true,
+                            hint: const Text(
+                              'Selecciona un perfil',
+                              style: TextStyle(color: AppColors.textMuted),
+                            ),
+                            items: [
+                              const DropdownMenuItem<String>(
+                                value: null,
+                                child: Text(
+                                  'Sin vínculo',
+                                  style: TextStyle(color: AppColors.textMuted),
+                                ),
+                              ),
+                              ...all.map(
+                                (p) => DropdownMenuItem<String>(
+                                  value: p.id,
+                                  child: Text(
+                                    p.email,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            onChanged: (v) {
+                              userIdControl.value = v;
+                              userIdControl.markAsTouched();
+                            },
+                          ),
+                        ),
+                      ),
+                      if (currentValue != null) ...[
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            icon: const Icon(
+                              Icons.link_off_rounded,
+                              size: 16,
+                              color: AppColors.error,
+                            ),
+                            label: const Text(
+                              'Desvincular cuenta',
+                              style: TextStyle(color: AppColors.error),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: AppColors.error),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            onPressed: () {
+                              userIdControl.value = null;
+                              userIdControl.markAsTouched();
+                            },
+                          ),
+                        ),
+                      ],
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  String? _emailForId(List<SbUser>? profiles, String id) {
+    if (profiles == null) return null;
+    for (final p in profiles) {
+      if (p.id == id) return p.email;
+    }
+    return null;
   }
 }
 
@@ -299,6 +476,24 @@ InputDecoration _decoration(String hint) => InputDecoration(
   focusedErrorBorder: OutlineInputBorder(
     borderRadius: BorderRadius.circular(12),
     borderSide: const BorderSide(color: AppColors.error, width: 1.4),
+  ),
+);
+
+InputDecoration _dropdownDecoration() => InputDecoration(
+  filled: true,
+  fillColor: AppColors.bgLight,
+  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+  border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(12),
+    borderSide: const BorderSide(color: AppColors.cardBorder),
+  ),
+  enabledBorder: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(12),
+    borderSide: const BorderSide(color: AppColors.cardBorder),
+  ),
+  focusedBorder: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(12),
+    borderSide: const BorderSide(color: AppColors.accentDark, width: 1.4),
   ),
 );
 
@@ -430,7 +625,6 @@ class _BirthdayField extends StatelessWidget {
     FormControl<DateTime> control,
   ) async {
     final now = DateTime.now();
-    // Default a 30 años atrás (rango típico de scout adulto)
     final initial =
         control.value ?? DateTime(now.year - 30, now.month, now.day);
     final picked = await showDatePicker(

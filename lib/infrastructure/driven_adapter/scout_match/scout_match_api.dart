@@ -99,6 +99,24 @@ class ScoutMatchApi implements ScoutMatchRepository {
     }
   }
 
+  @override
+  Future<List<ScoutMatch>> getMyAssignments() async {
+    try {
+      final data = await _supabase.rpc<dynamic>('get_my_assignments');
+      return (data as List)
+          .map((e) => ScoutMatch.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } on PostgrestException catch (e) {
+      _log.severe(e.toString());
+      throw ScoutMatchApiException(_mapPgCode(e));
+    } on SocketException {
+      throw ScoutMatchApiException('network_error');
+    } catch (e) {
+      _log.severe(e.toString());
+      throw ScoutMatchApiException('unknow_error');
+    }
+  }
+
   String _mapPgCode(PostgrestException e) {
     return switch (e.code) {
       '23505' => 'already_assigned', // unique_violation (si se añade índice)

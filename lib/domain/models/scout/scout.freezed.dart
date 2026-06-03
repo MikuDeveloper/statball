@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Scout {
 
- String? get id; String get name; String get lastname; DateTime get birthday; String get phoneNumber; String get address; String get photo;
+ String? get id; String get name; String get lastname; DateTime get birthday; String get phoneNumber; String get address; String get photo; String? get userId;
 /// Create a copy of Scout
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $ScoutCopyWith<Scout> get copyWith => _$ScoutCopyWithImpl<Scout>(this as Scout, 
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Scout&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.lastname, lastname) || other.lastname == lastname)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&(identical(other.phoneNumber, phoneNumber) || other.phoneNumber == phoneNumber)&&(identical(other.address, address) || other.address == address)&&(identical(other.photo, photo) || other.photo == photo));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Scout&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.lastname, lastname) || other.lastname == lastname)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&(identical(other.phoneNumber, phoneNumber) || other.phoneNumber == phoneNumber)&&(identical(other.address, address) || other.address == address)&&(identical(other.photo, photo) || other.photo == photo)&&(identical(other.userId, userId) || other.userId == userId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,lastname,birthday,phoneNumber,address,photo);
+int get hashCode => Object.hash(runtimeType,id,name,lastname,birthday,phoneNumber,address,photo,userId);
 
 @override
 String toString() {
-  return 'Scout(id: $id, name: $name, lastname: $lastname, birthday: $birthday, phoneNumber: $phoneNumber, address: $address, photo: $photo)';
+  return 'Scout(id: $id, name: $name, lastname: $lastname, birthday: $birthday, phoneNumber: $phoneNumber, address: $address, photo: $photo, userId: $userId)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $ScoutCopyWith<$Res>  {
   factory $ScoutCopyWith(Scout value, $Res Function(Scout) _then) = _$ScoutCopyWithImpl;
 @useResult
 $Res call({
- String? id, String name, String lastname, DateTime birthday, String phoneNumber, String address, String photo
+ String? id, String name, String lastname, DateTime birthday, String phoneNumber, String address, String photo, String? userId
 });
 
 
@@ -65,7 +65,7 @@ class _$ScoutCopyWithImpl<$Res>
 
 /// Create a copy of Scout
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? name = null,Object? lastname = null,Object? birthday = null,Object? phoneNumber = null,Object? address = null,Object? photo = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? name = null,Object? lastname = null,Object? birthday = null,Object? phoneNumber = null,Object? address = null,Object? photo = null,Object? userId = freezed,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -74,7 +74,8 @@ as String,birthday: null == birthday ? _self.birthday : birthday // ignore: cast
 as DateTime,phoneNumber: null == phoneNumber ? _self.phoneNumber : phoneNumber // ignore: cast_nullable_to_non_nullable
 as String,address: null == address ? _self.address : address // ignore: cast_nullable_to_non_nullable
 as String,photo: null == photo ? _self.photo : photo // ignore: cast_nullable_to_non_nullable
-as String,
+as String,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -159,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String name,  String lastname,  DateTime birthday,  String phoneNumber,  String address,  String photo)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String name,  String lastname,  DateTime birthday,  String phoneNumber,  String address,  String photo,  String? userId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Scout() when $default != null:
-return $default(_that.id,_that.name,_that.lastname,_that.birthday,_that.phoneNumber,_that.address,_that.photo);case _:
+return $default(_that.id,_that.name,_that.lastname,_that.birthday,_that.phoneNumber,_that.address,_that.photo,_that.userId);case _:
   return orElse();
 
 }
@@ -180,10 +181,10 @@ return $default(_that.id,_that.name,_that.lastname,_that.birthday,_that.phoneNum
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String name,  String lastname,  DateTime birthday,  String phoneNumber,  String address,  String photo)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String name,  String lastname,  DateTime birthday,  String phoneNumber,  String address,  String photo,  String? userId)  $default,) {final _that = this;
 switch (_that) {
 case _Scout():
-return $default(_that.id,_that.name,_that.lastname,_that.birthday,_that.phoneNumber,_that.address,_that.photo);case _:
+return $default(_that.id,_that.name,_that.lastname,_that.birthday,_that.phoneNumber,_that.address,_that.photo,_that.userId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -200,10 +201,10 @@ return $default(_that.id,_that.name,_that.lastname,_that.birthday,_that.phoneNum
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String name,  String lastname,  DateTime birthday,  String phoneNumber,  String address,  String photo)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String name,  String lastname,  DateTime birthday,  String phoneNumber,  String address,  String photo,  String? userId)?  $default,) {final _that = this;
 switch (_that) {
 case _Scout() when $default != null:
-return $default(_that.id,_that.name,_that.lastname,_that.birthday,_that.phoneNumber,_that.address,_that.photo);case _:
+return $default(_that.id,_that.name,_that.lastname,_that.birthday,_that.phoneNumber,_that.address,_that.photo,_that.userId);case _:
   return null;
 
 }
@@ -215,7 +216,7 @@ return $default(_that.id,_that.name,_that.lastname,_that.birthday,_that.phoneNum
 
 @JsonSerializable(fieldRename: FieldRename.snake)
 class _Scout implements Scout {
-  const _Scout({this.id, required this.name, required this.lastname, required this.birthday, required this.phoneNumber, required this.address, required this.photo});
+  const _Scout({this.id, required this.name, required this.lastname, required this.birthday, required this.phoneNumber, required this.address, required this.photo, this.userId});
   factory _Scout.fromJson(Map<String, dynamic> json) => _$ScoutFromJson(json);
 
 @override final  String? id;
@@ -225,6 +226,7 @@ class _Scout implements Scout {
 @override final  String phoneNumber;
 @override final  String address;
 @override final  String photo;
+@override final  String? userId;
 
 /// Create a copy of Scout
 /// with the given fields replaced by the non-null parameter values.
@@ -239,16 +241,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Scout&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.lastname, lastname) || other.lastname == lastname)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&(identical(other.phoneNumber, phoneNumber) || other.phoneNumber == phoneNumber)&&(identical(other.address, address) || other.address == address)&&(identical(other.photo, photo) || other.photo == photo));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Scout&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.lastname, lastname) || other.lastname == lastname)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&(identical(other.phoneNumber, phoneNumber) || other.phoneNumber == phoneNumber)&&(identical(other.address, address) || other.address == address)&&(identical(other.photo, photo) || other.photo == photo)&&(identical(other.userId, userId) || other.userId == userId));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,lastname,birthday,phoneNumber,address,photo);
+int get hashCode => Object.hash(runtimeType,id,name,lastname,birthday,phoneNumber,address,photo,userId);
 
 @override
 String toString() {
-  return 'Scout(id: $id, name: $name, lastname: $lastname, birthday: $birthday, phoneNumber: $phoneNumber, address: $address, photo: $photo)';
+  return 'Scout(id: $id, name: $name, lastname: $lastname, birthday: $birthday, phoneNumber: $phoneNumber, address: $address, photo: $photo, userId: $userId)';
 }
 
 
@@ -259,7 +261,7 @@ abstract mixin class _$ScoutCopyWith<$Res> implements $ScoutCopyWith<$Res> {
   factory _$ScoutCopyWith(_Scout value, $Res Function(_Scout) _then) = __$ScoutCopyWithImpl;
 @override @useResult
 $Res call({
- String? id, String name, String lastname, DateTime birthday, String phoneNumber, String address, String photo
+ String? id, String name, String lastname, DateTime birthday, String phoneNumber, String address, String photo, String? userId
 });
 
 
@@ -276,7 +278,7 @@ class __$ScoutCopyWithImpl<$Res>
 
 /// Create a copy of Scout
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? name = null,Object? lastname = null,Object? birthday = null,Object? phoneNumber = null,Object? address = null,Object? photo = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? name = null,Object? lastname = null,Object? birthday = null,Object? phoneNumber = null,Object? address = null,Object? photo = null,Object? userId = freezed,}) {
   return _then(_Scout(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -285,7 +287,8 @@ as String,birthday: null == birthday ? _self.birthday : birthday // ignore: cast
 as DateTime,phoneNumber: null == phoneNumber ? _self.phoneNumber : phoneNumber // ignore: cast_nullable_to_non_nullable
 as String,address: null == address ? _self.address : address // ignore: cast_nullable_to_non_nullable
 as String,photo: null == photo ? _self.photo : photo // ignore: cast_nullable_to_non_nullable
-as String,
+as String,userId: freezed == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
