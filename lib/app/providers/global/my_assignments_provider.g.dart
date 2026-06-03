@@ -33,7 +33,7 @@ final class MyAssignmentsProvider
   MyAssignments create() => MyAssignments();
 }
 
-String _$myAssignmentsHash() => r'76d0bd0792eda041b514d3465c5c417d044c1b65';
+String _$myAssignmentsHash() => r'793069583c74fafe927d6355ce6adb51670c07a6';
 
 abstract class _$MyAssignments extends $AsyncNotifier<MyAssignmentsState> {
   FutureOr<MyAssignmentsState> build();

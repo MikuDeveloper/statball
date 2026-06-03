@@ -14,9 +14,6 @@ abstract class Scout with _$Scout {
     required String phoneNumber,
     required String address,
     required String photo,
-    // FK nullable a profiles.id. Binding scout↔cuenta de app.
-    // No es el mismo UUID que el scout — catálogo y auth son entidades distintas.
-    String? userId,
   }) = _Scout;
 
   factory Scout.empty() => _Scout(

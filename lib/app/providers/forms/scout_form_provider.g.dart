@@ -56,4 +56,4 @@ final class ScoutFormProvider
   }
 }
 
-String _$scoutFormHash() => r'4aca4669fd8334a229f03ed7402ae58acdea7aa9';
+String _$scoutFormHash() => r'3541e9fdcfa685328e0cda4e520d406e35135c84';
