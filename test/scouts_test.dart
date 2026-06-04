@@ -21,6 +21,41 @@ void main() {
       final json = s.toJson();
       expect(json['phone_number'], '+52');
     });
+
+    test('userId nullable — roundtrip con vínculo y sin vínculo', () {
+      final bday = DateTime(2000, 6, 15);
+
+      // Con userId (scout vinculado a una cuenta)
+      final linked = Scout(
+        id: 'uuid-scout',
+        name: 'Ana',
+        lastname: 'López',
+        birthday: bday,
+        phoneNumber: '+52 111',
+        address: 'Av. 5',
+        photo: 'https://img.test',
+        userId: 'profile-uuid-abc',
+      );
+      final json = linked.toJson();
+      expect(json['user_id'], 'profile-uuid-abc');
+      final back = Scout.fromJson(json);
+      expect(back.userId, 'profile-uuid-abc');
+      expect(back, equals(linked));
+
+      // Sin userId (scout sin cuenta vinculada)
+      final unlinked = Scout(
+        id: 'uuid-scout-2',
+        name: 'Pedro',
+        lastname: 'Gómez',
+        birthday: bday,
+        phoneNumber: '+52 222',
+        address: 'Calle 8',
+        photo: '',
+      );
+      final json2 = unlinked.toJson();
+      final back2 = Scout.fromJson(json2);
+      expect(back2.userId, isNull);
+    });
   });
 
   group('Scout — Form', () {

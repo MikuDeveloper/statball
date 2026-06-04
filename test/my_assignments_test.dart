@@ -10,7 +10,10 @@ import 'package:statball/domain/index.dart'
 
 import '_helpers/fakes.dart';
 
-// ─── Fake especializado: getMyAssignments devuelve datos prefijados ───────────
+// ─── Fake especializado: getMyAssignments devuelve datos prefijados ──────────
+// _hasScoutLink() en el provider hace una query directa a Supabase que no
+// podemos interceptar en tests unitarios; por eso testeamos solo el camino
+// "con asignaciones" donde esa rama no se ejecuta.
 class _FakeScoutMatchUseCase implements ScoutMatchUseCase {
   _FakeScoutMatchUseCase(this._myAssignments);
   final List<ScoutMatch> _myAssignments;
@@ -73,25 +76,29 @@ void main() {
     );
   }
 
+  group('MyAssignmentsEmptyReason — enum', () {
+    test('tiene los valores noScoutLink y noAssignments', () {
+      expect(MyAssignmentsEmptyReason.values.length, 2);
+      expect(
+        MyAssignmentsEmptyReason.values,
+        containsAll([
+          MyAssignmentsEmptyReason.noScoutLink,
+          MyAssignmentsEmptyReason.noAssignments,
+        ]),
+      );
+    });
+  });
+
   group('myAssignmentsProvider — con asignaciones', () {
-    test('devuelve la lista completa', () async {
+    test('estado carga assignments y emptyReason es null', () async {
       final c = makeContainer([upcomingAssignment, pastAssignment]);
       addTearDown(c.dispose);
 
       await c.read(gameMatchesProvider.future);
-      final assignments = await c.read(myAssignmentsProvider.future);
+      final s = await c.read(myAssignmentsProvider.future);
 
-      expect(assignments.length, 2);
-    });
-
-    test('lista vacía cuando no hay asignaciones', () async {
-      final c = makeContainer([]);
-      addTearDown(c.dispose);
-
-      await c.read(gameMatchesProvider.future);
-      final assignments = await c.read(myAssignmentsProvider.future);
-
-      expect(assignments, isEmpty);
+      expect(s.assignments.length, 2);
+      expect(s.emptyReason, isNull);
     });
 
     test('getter upcoming filtra por partidos futuros', () async {

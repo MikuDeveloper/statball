@@ -13,6 +13,7 @@ import 'package:statball/domain/index.dart';
 //  MY ASSIGNMENTS SCREEN — "Mi visoría"
 //  Muestra las visorías asignadas al scout del usuario autenticado.
 //  Tabs: Próximas (default) / Pasadas.
+//  Empty state diferenciado: sin vínculo scout vs. sin asignaciones.
 // ════════════════════════════════════════════════════════════════════════════
 class MyAssignmentsScreen extends ConsumerStatefulWidget {
   const MyAssignmentsScreen({super.key});
@@ -87,7 +88,11 @@ class _MyAssignmentsScreenState extends ConsumerState<MyAssignmentsScreen>
       body: stateAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => _ErrorState(message: e.toString()),
-        data: (_) {
+        data: (s) {
+          // Empty state global: cubre ambas tabs (el motivo aplica a todo)
+          if (s.emptyReason != null) {
+            return _GlobalEmptyState(reason: s.emptyReason!);
+          }
           final notifier = ref.read(myAssignmentsProvider.notifier);
           return TabBarView(
             controller: _tabs,
@@ -117,7 +122,7 @@ class _AssignmentList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (assignments.isEmpty) {
-      return _EmptyState(tab: tab);
+      return _TabEmptyState(tab: tab);
     }
 
     return ListView.separated(
@@ -221,7 +226,7 @@ class _AssignmentCard extends StatelessWidget {
             const Divider(height: 1, color: AppColors.divider),
             const SizedBox(height: 10),
 
-            // ── Body: LOCAL vs VISIT ────────────────────────────────────────
+            // ── Body: LOCAL vs VISIT badges ────────────────────────────────
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14),
               child: Row(
@@ -333,20 +338,28 @@ class _TeamSide extends StatelessWidget {
   }
 }
 
-// ─── Empty states ────────────────────────────────────────────────────────────
+// ─── Empty states ─────────────────────────────────────────────────────────────
 
-class _EmptyState extends StatelessWidget {
-  final _Tab tab;
-  const _EmptyState({required this.tab});
+// Empty state global: se muestra cuando la RPC devuelve vacío.
+// Diferencia entre sin vínculo scout y sin asignaciones.
+class _GlobalEmptyState extends StatelessWidget {
+  final MyAssignmentsEmptyReason reason;
+  const _GlobalEmptyState({required this.reason});
 
   @override
   Widget build(BuildContext context) {
-    final (icon, message) = switch (tab) {
-      _Tab.upcoming => (
-        Icons.event_outlined,
-        'No tienes visorías próximas asignadas.',
+    final (icon, title, message) = switch (reason) {
+      MyAssignmentsEmptyReason.noScoutLink => (
+        Icons.account_circle_outlined,
+        'Sin perfil de scout',
+        'Aún no tienes un perfil de scout vinculado a tu cuenta. '
+            'Pídele a tu coordinador que te vincule.',
       ),
-      _Tab.past => (Icons.history_rounded, 'No hay visorías pasadas aún.'),
+      MyAssignmentsEmptyReason.noAssignments => (
+        Icons.assignment_outlined,
+        'Sin visorías asignadas',
+        'Aún no tienes visorías asignadas.',
+      ),
     };
 
     return Center(
@@ -355,19 +368,48 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 52, color: AppColors.textMuted),
-            const SizedBox(height: 14),
+            Icon(icon, size: 56, color: AppColors.textMuted),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
             Text(
               message,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 14,
+                fontSize: 13.5,
                 color: AppColors.textMuted,
                 height: 1.5,
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// Empty state por tab: el scout tiene asignaciones pero no en este tab concreto.
+class _TabEmptyState extends StatelessWidget {
+  final _Tab tab;
+  const _TabEmptyState({required this.tab});
+
+  @override
+  Widget build(BuildContext context) {
+    final message = tab == _Tab.upcoming
+        ? 'No tienes visorías próximas.'
+        : 'No hay visorías pasadas aún.';
+    return Center(
+      child: Text(
+        message,
+        style: const TextStyle(fontSize: 14, color: AppColors.textMuted),
       ),
     );
   }
