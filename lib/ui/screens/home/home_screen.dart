@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:statball/app/config/routes/routes.dart';
 import 'package:statball/app/config/themes/app_colors.dart';
+import 'package:statball/app/providers/global/sb_user_data_provider.dart';
+import 'package:statball/ui/common/utils/snackbars_mixin.dart';
 
 import 'widgets/sb_widgets.dart';
 
@@ -14,14 +18,14 @@ import 'widgets/sb_widgets.dart';
 //                          SbSummaryCard, SbActionButton, SbVisoriaActiveCard,
 //                          SbPlayerCard, SbFeedItem, SbChip
 // ════════════════════════════════════════════════════════════════════════════
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> with SnackbarsMixin {
   int _navIndex = 0;
 
   // ── Datos de ejemplo (reemplazar con tu modelo/provider) ─────────────────
@@ -96,10 +100,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _goToProfile() {
-    // TODO: Navigator.push → ProfileScreen
-  }
-
   void _goToRegisterPlayer() {
     const PlayersRoute().push<void>(context);
   }
@@ -125,6 +125,82 @@ class _HomeScreenState extends State<HomeScreen> {
     // TODO: Navigator.push → PlayerDetailScreen(player)
   }
 
+  // ── Logout ────────────────────────────────────────────────────────────────
+  void _openAvatarSheet() {
+    final user = ref.read(sbUserDataProvider).value;
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.card,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetCtx) => _AvatarBottomSheet(
+        email: user?.email ?? '',
+        role: user?.role ?? '',
+        onLogout: () => _confirmLogout(sheetCtx),
+      ),
+    );
+  }
+
+  void _confirmLogout(BuildContext sheetCtx) {
+    showDialog<bool>(
+      context: sheetCtx,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: AppColors.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          '¿Cerrar sesión?',
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        content: const Text(
+          'Se cerrará tu sesión en este dispositivo.',
+          style: TextStyle(color: AppColors.textMuted),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(false),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: AppColors.textMuted),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(true),
+            child: const Text(
+              'Cerrar sesión',
+              style: TextStyle(
+                color: AppColors.error,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ).then((confirmed) {
+      if (confirmed != true) return;
+      _performLogout();
+    });
+  }
+
+  Future<void> _performLogout() async {
+    // Cerrar el bottom sheet antes de hacer logout
+    if (mounted) Navigator.of(context).pop();
+
+    try {
+      await ref.read(sbUserDataProvider.notifier).logout();
+      if (mounted) context.go('/login');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          errorSnackBar(message: 'Error al cerrar sesión. Intenta de nuevo.'),
+        );
+      }
+    }
+  }
+
   // ─────────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
@@ -137,7 +213,7 @@ class _HomeScreenState extends State<HomeScreen> {
           SbTopBar(
             scoutName: _scoutName,
             dateLine: _dateLine,
-            onAvatarTap: _goToProfile,
+            onAvatarTap: _openAvatarSheet,
           ),
 
           // ── Cuerpo scrolleable ──────────────────────────────────────────
@@ -194,6 +270,121 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  AVATAR BOTTOM SHEET
+// ════════════════════════════════════════════════════════════════════════════
+class _AvatarBottomSheet extends StatelessWidget {
+  final String email;
+  final String role;
+  final VoidCallback onLogout;
+
+  const _AvatarBottomSheet({
+    required this.email,
+    required this.role,
+    required this.onLogout,
+  });
+
+  String get _roleLabel {
+    return switch (role) {
+      'super_scout' => 'Super scout',
+      _ => 'Scout',
+    };
+  }
+
+  String get _initials {
+    if (email.isEmpty) return '?';
+    return email[0].toUpperCase();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // ── Handle ─────────────────────────────────────────────────────
+          const SizedBox(height: 12),
+          Center(
+            child: Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.cardBorder,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // ── Info del usuario ────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: AppColors.accentSurface,
+                  child: Text(
+                    _initials,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.accentDark,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        email.isEmpty ? 'Usuario' : email,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _roleLabel,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 16),
+          const Divider(height: 1, color: AppColors.divider),
+
+          // ── Cerrar sesión ───────────────────────────────────────────────
+          ListTile(
+            leading: const Icon(Icons.logout_rounded, color: AppColors.error),
+            title: const Text(
+              'Cerrar sesión',
+              style: TextStyle(
+                color: AppColors.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            onTap: onLogout,
+          ),
+
+          const SizedBox(height: 8),
         ],
       ),
     );

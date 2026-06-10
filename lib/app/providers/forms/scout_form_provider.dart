@@ -32,6 +32,8 @@ part 'scout_form_provider.g.dart';
         value: '',
         validators: [Validators.required],
       ),
+      // Opcional: UUID del profile vinculado (scouts.user_id). null = sin vínculo.
+      'userId': FormControl<String>(value: null),
     }),
   );
 }

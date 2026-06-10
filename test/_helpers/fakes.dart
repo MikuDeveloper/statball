@@ -54,4 +54,7 @@ class FakeScoutMatchUseCase implements ScoutMatchUseCase {
 
   @override
   Future<void> delete(int id) async => _store.removeWhere((s) => s.id == id);
+
+  @override
+  Future<List<ScoutMatch>> getMyAssignments() async => List.of(_store);
 }

@@ -14,6 +14,7 @@ _Scout _$ScoutFromJson(Map<String, dynamic> json) => _Scout(
   phoneNumber: json['phone_number'] as String,
   address: json['address'] as String,
   photo: json['photo'] as String,
+  userId: json['user_id'] as String?,
 );
 
 Map<String, dynamic> _$ScoutToJson(_Scout instance) => <String, dynamic>{
@@ -24,4 +25,5 @@ Map<String, dynamic> _$ScoutToJson(_Scout instance) => <String, dynamic>{
   'phone_number': instance.phoneNumber,
   'address': instance.address,
   'photo': instance.photo,
+  'user_id': instance.userId,
 };

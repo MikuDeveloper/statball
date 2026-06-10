@@ -206,6 +206,18 @@ class GameMatchFormRoute extends RelativeGoRouteData with $GameMatchFormRoute {
       GameMatchFormScreen(matchId: id);
 }
 
+@TypedGoRoute<MyAssignmentsRoute>(
+  path: '/my-assignments',
+  name: 'my_assignments',
+)
+class MyAssignmentsRoute extends GoRouteData with $MyAssignmentsRoute {
+  const MyAssignmentsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const MyAssignmentsScreen();
+}
+
 // ════════════════════════════════════════════════════════════════════════════
 //  Extensiones push() para routes relativas
 //
