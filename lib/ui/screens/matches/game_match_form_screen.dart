@@ -190,8 +190,6 @@ class _GameMatchFormScreenState extends ConsumerState<GameMatchFormScreen>
                   // En modo edición ya existe match.id, así que podemos
                   // gestionar asignaciones de scouts (CRUD inmediato).
                   if (_isEdit) ...[
-                    const _SectionTitle('Scouts asignados'),
-                    const SizedBox(height: 12),
                     MatchScoutsSection(matchId: widget.matchId!),
                     const SizedBox(height: 24),
                   ],

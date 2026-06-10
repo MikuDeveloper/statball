@@ -5,6 +5,7 @@ import 'package:reactive_forms/reactive_forms.dart';
 import 'package:statball/app/config/themes/app_colors.dart';
 import 'package:statball/app/global/constants.dart' show defaultRadius;
 import 'package:statball/app/providers/forms/scout_match_form_provider.dart';
+import 'package:statball/app/providers/global/sb_user_data_provider.dart';
 import 'package:statball/app/providers/global/scout_matches_provider.dart';
 import 'package:statball/app/providers/global/scouts_provider.dart';
 // Sin `show` para que ScoutX.displayName entre en scope.
@@ -26,6 +27,8 @@ class MatchScoutsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncAssignments = ref.watch(scoutMatchesProvider(matchId));
     final asyncScouts = ref.watch(scoutsProvider);
+    final role = ref.watch(sbUserDataProvider).value?.role ?? '';
+    final isSuperScout = role == 'super_scout';
 
     return asyncAssignments.when(
       loading: () => const Padding(
@@ -50,11 +53,29 @@ class MatchScoutsSection extends ConsumerWidget {
         final scouts = asyncScouts.value ?? const <Scout>[];
         final scoutById = {for (final s in scouts) s.id: s};
 
+        // Título dinámico según rol.
+        final title = isSuperScout
+            ? 'Scouts asignados (${assignments.length})'
+            : 'Mi asignación';
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textMuted,
+                letterSpacing: 0.4,
+              ),
+            ),
+            const SizedBox(height: 10),
+
             if (assignments.isEmpty)
-              const _EmptyHint()
+              isSuperScout
+                  ? const _EmptyHint()
+                  : const _ScoutNoAssignmentHint()
             else
               ...assignments.map(
                 (a) => Padding(
@@ -63,26 +84,30 @@ class MatchScoutsSection extends ConsumerWidget {
                     assignment: a,
                     scout: scoutById[a.scoutId],
                     matchId: matchId,
+                    isSuperScout: isSuperScout,
                   ),
                 ),
               ),
-            const SizedBox(height: 4),
-            OutlinedButton.icon(
-              onPressed: () => _openAssignSheet(context, ref, scouts),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.accentDark,
-                side: const BorderSide(color: AppColors.accentDark),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+
+            if (isSuperScout) ...[
+              const SizedBox(height: 4),
+              OutlinedButton.icon(
+                onPressed: () => _openAssignSheet(context, ref, scouts),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.accentDark,
+                  side: const BorderSide(color: AppColors.accentDark),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
+                label: const Text(
+                  'Asignar scout',
+                  style: TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),
-              icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
-              label: const Text(
-                'Asignar scout',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
-            ),
+            ],
           ],
         );
       },
@@ -128,10 +153,12 @@ class _AssignmentTile extends ConsumerWidget with SnackbarsMixin {
   final ScoutMatch assignment;
   final Scout? scout;
   final int matchId;
+  final bool isSuperScout;
   _AssignmentTile({
     required this.assignment,
     required this.scout,
     required this.matchId,
+    required this.isSuperScout,
   });
 
   @override
@@ -191,17 +218,18 @@ class _AssignmentTile extends ConsumerWidget with SnackbarsMixin {
               ],
             ),
           ),
-          IconButton(
-            tooltip: 'Quitar asignación',
-            icon: const Icon(
-              Icons.delete_outline_rounded,
-              color: AppColors.error,
-              size: 20,
+          if (isSuperScout)
+            IconButton(
+              tooltip: 'Quitar asignación',
+              icon: const Icon(
+                Icons.delete_outline_rounded,
+                color: AppColors.error,
+                size: 20,
+              ),
+              onPressed: assignment.id == null
+                  ? null
+                  : () => _confirmRemove(context, ref),
             ),
-            onPressed: assignment.id == null
-                ? null
-                : () => _confirmRemove(context, ref),
-          ),
         ],
       ),
     );
@@ -445,6 +473,44 @@ InputDecoration _sheetDecoration(String hint) => InputDecoration(
 );
 
 // ─── helpers de estado ──────────────────────────────────────────────────────
+
+// Empty state para scout sin asignación en el partido.
+class _ScoutNoAssignmentHint extends StatelessWidget {
+  const _ScoutNoAssignmentHint();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: const Row(
+        children: [
+          Icon(
+            Icons.assignment_ind_outlined,
+            color: AppColors.textMuted,
+            size: 18,
+          ),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'No tienes asignación en este partido.',
+              style: TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 12.5,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _EmptyHint extends StatelessWidget {
   const _EmptyHint();
 
