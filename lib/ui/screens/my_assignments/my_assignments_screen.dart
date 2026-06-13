@@ -181,8 +181,11 @@ class _AssignmentCard extends StatelessWidget {
       onTap: match?.id == null
           ? null
           : () {
-              // TODO(deliverable-9): migrar a /live-match cuando esté implementado
-              GameMatchFormRoute(id: match!.id).push<void>(context);
+              if (upcoming) {
+                LiveMatchRoute(id: match!.id!).go(context);
+              } else {
+                GameMatchFormRoute(id: match!.id).push<void>(context);
+              }
             },
       child: Container(
         decoration: BoxDecoration(
@@ -248,12 +251,12 @@ class _AssignmentCard extends StatelessWidget {
               ),
             ),
 
-            // ── Footer: notes (si no está vacío) ──────────────────────────
+            // ── Footer: notes + CTA ───────────────────────────────────────
             if (scoutMatch.notes.trim().isNotEmpty) ...[
               const SizedBox(height: 10),
               const Divider(height: 1, color: AppColors.divider),
               Padding(
-                padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
+                padding: const EdgeInsets.fromLTRB(14, 8, 14, 0),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -276,8 +279,35 @@ class _AssignmentCard extends StatelessWidget {
                   ],
                 ),
               ),
-            ] else
-              const SizedBox(height: 12),
+            ],
+            const SizedBox(height: 6),
+            const Divider(height: 1, color: AppColors.divider),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 6, 14, 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    upcoming ? 'Iniciar visoría' : 'Ver detalle',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: upcoming
+                          ? AppColors.accentDark
+                          : AppColors.textMuted,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 14,
+                    color: upcoming
+                        ? AppColors.accentDark
+                        : AppColors.textMuted,
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

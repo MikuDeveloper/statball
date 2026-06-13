@@ -15,3 +15,4 @@ export 'scouts/scout_form_screen.dart';
 export 'matches/matches_screen.dart';
 export 'matches/game_match_form_screen.dart';
 export 'my_assignments/my_assignments_screen.dart';
+export 'live_match/live_match_screen.dart';

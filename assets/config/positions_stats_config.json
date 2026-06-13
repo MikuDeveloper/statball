@@ -1,0 +1,274 @@
+{
+  "_readme": "Config completa de stats y eventos del sistema de scouting Statball. SEPARACION: match_events = eventos contables en tiempo real durante la visoria. stats_tech/physics/qual = evaluacion 2-10 al final del partido. Cargado en runtime desde assets para permitir iteracion sin recompilar.",
+
+  "_version": "1.0.0-fase3",
+  "_last_updated": "2026-06-12",
+
+  "_notes_design": {
+    "perspectiva_location": "La zona en matches_events.location se interpreta SIEMPRE desde la perspectiva del jugador evaluado. 1er tercio = su tercio defensivo. 3er tercio = su tercio ofensivo. Para combinar heatmaps de ambos equipos, flipear horizontal los del visitor. Esto es estandar en analitica de futbol (StatsBomb/Wyscout normalizan asi).",
+    "perspectiva_grid_codigo": "Grid 3x3. Codigo NX donde N=1|2|3 (tercio defensivo/medio/ofensivo del jugador) y X=I|C|D (izquierda/centro/derecha de la cancha). Ej: '1C' = 1er tercio centro, '3D' = 3er tercio derecha.",
+    "rating_scale_5_niveles": "Escala categorica de 5 valores fijos (2/4/6/8/10). NO usar valores intermedios. Fuerza decision binaria por categoria, evita 'estaba bien' del scout indeciso.",
+    "evaluation_status": "Cada jugador en un partido pasa por estados: en_evaluacion (scout captura eventos) -> completada (scout cerro su evaluacion) o salio_de_evaluacion (sustituido/lesion). Status persiste en matches_players.evaluation_status."
+  },
+
+  "rating_scale": {
+    "_nota": "Usar solo estos 5 valores. No intermedios.",
+    "muy_eficiente": 10,
+    "eficiente": 8,
+    "mejorable": 6,
+    "deficiente": 4,
+    "muy_deficiente": 2
+  },
+
+  "location_zones": {
+    "_nota": "9 zonas del grid 3x3. Codigo string almacenado en matches_events.location (varchar 50).",
+    "_perspectiva": "Desde el jugador evaluado: fila 1 = su tercio defensivo (cerca de su porteria), fila 3 = su tercio ofensivo (cerca de la porteria rival).",
+    "zones": [
+      { "code": "3I", "label": "Ataque izquierda" },
+      { "code": "3C", "label": "Ataque centro" },
+      { "code": "3D", "label": "Ataque derecha" },
+      { "code": "2I", "label": "Mediocampo izquierda" },
+      { "code": "2C", "label": "Mediocampo centro" },
+      { "code": "2D", "label": "Mediocampo derecha" },
+      { "code": "1I", "label": "Defensa izquierda" },
+      { "code": "1C", "label": "Defensa centro" },
+      { "code": "1D", "label": "Defensa derecha" }
+    ]
+  },
+
+  "stats_physics": {
+    "_nota": "Aplica igual a TODAS las posiciones. Llenar al final del partido. Guardar en matches_players.stats_physics (jsonb).",
+    "fields": [
+      { "key": "velocidad",             "label": "Velocidad" },
+      { "key": "resistencia",           "label": "Resistencia" },
+      { "key": "fuerza",                "label": "Fuerza" },
+      { "key": "agilidad",              "label": "Agilidad" },
+      { "key": "explosividad",          "label": "Explosividad" },
+      { "key": "recuperacion_fisica",   "label": "Recuperacion fisica" },
+      { "key": "agresividad",           "label": "Agresividad" },
+      { "key": "potencia",              "label": "Potencia" }
+    ]
+  },
+
+  "stats_qual": {
+    "_nota": "Aplica igual a TODAS las posiciones. Llenar al final del partido. Guardar en matches_players.stats_qual (jsonb).",
+    "fields": [
+      { "key": "liderazgo",               "label": "Liderazgo" },
+      { "key": "concentracion",           "label": "Concentracion" },
+      { "key": "decisiones",              "label": "Toma de decisiones" },
+      { "key": "actitud",                 "label": "Actitud" },
+      { "key": "capacidad_aprendizaje",   "label": "Capacidad de aprendizaje" },
+      { "key": "competitividad",          "label": "Competitividad" }
+    ]
+  },
+
+  "stats_tech": {
+    "_nota": "Los fields cambian segun matches_players.position (validado por position_enum en DB). Front carga dinamicamente segun la posicion. Guardar en matches_players.stats_tech (jsonb).",
+
+    "PORTERO": {
+      "label": "Portero",
+      "short": "GK",
+      "fields": [
+        { "key": "reflejos",      "label": "Reflejos" },
+        { "key": "juego_aereo",   "label": "Juego aereo" },
+        { "key": "salida_balon",  "label": "Salida de balon" },
+        { "key": "blocaje",       "label": "Blocaje" },
+        { "key": "saque_largo",   "label": "Saque largo" },
+        { "key": "uno_vs_uno",    "label": "Uno vs uno (defensivo por contexto)" }
+      ]
+    },
+
+    "LATERAL": {
+      "label": "Lateral",
+      "short": "LB/RB",
+      "_nota": "Combina perfil defensivo y ofensivo. Mas fields que la mayoria.",
+      "fields": [
+        { "key": "juego_aereo",            "label": "Juego aereo" },
+        { "key": "desborde",               "label": "Desborde" },
+        { "key": "centros",                "label": "Centros (en movimiento)" },
+        { "key": "recuperacion",           "label": "Recuperacion" },
+        { "key": "duelos_defensivos",      "label": "Duelos defensivos" },
+        { "key": "progresion",             "label": "Progresion" },
+        { "key": "cruce",                  "label": "Cruce" },
+        { "key": "balon_parado",           "label": "Balon parado" },
+        { "key": "uno_vs_uno_ofensivo",    "label": "Uno vs uno ofensivo" }
+      ]
+    },
+
+    "CENTRAL": {
+      "label": "Central",
+      "short": "CB",
+      "fields": [
+        { "key": "duelos",          "label": "Duelos" },
+        { "key": "anticipacion",    "label": "Anticipacion" },
+        { "key": "marca_hombre",    "label": "Marca al hombre" },
+        { "key": "salida_balon",    "label": "Salida de balon" },
+        { "key": "cobertura",       "label": "Cobertura" },
+        { "key": "intercepciones",  "label": "Intercepciones" }
+      ]
+    },
+
+    "CONTENCION": {
+      "label": "Contencion",
+      "short": "CDM",
+      "_nota": "recuperador es valoracion del rol, distinto al evento recuperacion.",
+      "fields": [
+        { "key": "juego_aereo",         "label": "Juego aereo" },
+        { "key": "recuperador",         "label": "Recuperador" },
+        { "key": "balon_parado",        "label": "Balon parado" },
+        { "key": "marca_hombre",        "label": "Marca al hombre" },
+        { "key": "duelos_individuales", "label": "Duelos individuales" },
+        { "key": "salida_balon",        "label": "Salida de balon" },
+        { "key": "hacia_adelante",      "label": "Hacia adelante" }
+      ]
+    },
+
+    "MEDIOCENTRO": {
+      "label": "Mediocentro",
+      "short": "CM",
+      "_todo_post_mvp": "Confirmar con cuerpo tecnico si 'disparo_fuera' debe unificarse con MEDIAPUNTA.disparo_frontal. Por ahora se mantienen separados.",
+      "fields": [
+        { "key": "pase_ruptura",    "label": "Pase de ruptura" },
+        { "key": "recuperacion",    "label": "Recuperacion" },
+        { "key": "vision_juego",    "label": "Vision de juego" },
+        { "key": "disparo_fuera",   "label": "Disparo de fuera del area" },
+        { "key": "control_ritmo",   "label": "Control de ritmo" },
+        { "key": "presion",         "label": "Presion" }
+      ]
+    },
+
+    "MEDIAPUNTA": {
+      "label": "Mediapunta",
+      "short": "CAM",
+      "_nota": "Enganche/playmaker entre lineas. goleador y calidad_tecnica son impresiones subjetivas del scout, no se derivan de conteos automaticos. balon_parado_golpeo cubre tiros libres directos y centros desde balon parado.",
+      "fields": [
+        { "key": "vertical",              "label": "Vertical" },
+        { "key": "disparo_frontal",       "label": "Disparo frontal" },
+        { "key": "ultimo_pase",           "label": "Ultimo pase" },
+        { "key": "calidad_tecnica",       "label": "Calidad tecnica" },
+        { "key": "balon_parado_golpeo",   "label": "Balon parado (golpeo)" },
+        { "key": "uno_vs_uno_ofensivo",   "label": "1v1 ofensivo" },
+        { "key": "goleador",              "label": "Goleador" },
+        { "key": "presion",               "label": "Presion alta" }
+      ]
+    },
+
+    "EXTREMO": {
+      "label": "Extremo",
+      "short": "LW/RW",
+      "_nota": "Ala izquierdo o derecho. centros = en movimiento; balon_parado_golpeo = corners y tiros libres parados.",
+      "fields": [
+        { "key": "juego_aereo",           "label": "Juego aereo" },
+        { "key": "marca_hombre",          "label": "Marca al hombre" },
+        { "key": "vertical",              "label": "Vertical" },
+        { "key": "centros",               "label": "Centros (en movimiento)" },
+        { "key": "balon_parado_golpeo",   "label": "Balon parado (golpeo)" },
+        { "key": "uno_vs_uno_ofensivo",   "label": "1v1 ofensivo" },
+        { "key": "goleador",              "label": "Goleador" },
+        { "key": "repliegue",             "label": "Repliegue" },
+        { "key": "remate_cabeza",         "label": "Remate de cabeza" }
+      ]
+    },
+
+    "DELANTERO": {
+      "label": "Delantero",
+      "short": "ST/CF",
+      "fields": [
+        { "key": "definicion",            "label": "Definicion" },
+        { "key": "desmarque",             "label": "Desmarque" },
+        { "key": "juego_espaldas",        "label": "Juego de espaldas" },
+        { "key": "regate_ultima_linea",   "label": "Regate ultima linea" },
+        { "key": "presion_alta",          "label": "Presion alta" },
+        { "key": "cabezazo",              "label": "Cabezazo" }
+      ]
+    }
+  },
+
+  "event_types": {
+    "_nota": "Registrar en tiempo real durante la visoria. Guardar en matches_events.details (jsonb). 'efectividad: implicita' = no guardar campo de exito, el tipo ya lo dice. 'efectividad: medible' = guardar resultado en details. matches_events.location guarda la zona del grid 3x3 (codigo NX).",
+    "_sin_tarjetas": "Tarjetas y sustituciones NO estan en MVP. Si en futuro se agregan, definir aqui con sus details.",
+
+    "gol": {
+      "label": "Gol",
+      "efectividad": "implicita",
+      "_nota": "Si se registro es porque entro. Reemplazo de juego_personal/juego_equipo booleans -> enum tipo_jugada.",
+      "details": {
+        "cabeza":         { "type": "boolean", "label": "De cabeza" },
+        "primer_toque":   { "type": "boolean", "label": "Primer toque" },
+        "dentro_area":    { "type": "boolean", "label": "Dentro del area" },
+        "tipo_jugada":    { "type": "enum",    "label": "Tipo de jugada", "options": ["personal", "equipo"] }
+      }
+    },
+
+    "asistencia": {
+      "label": "Asistencia",
+      "efectividad": "implicita",
+      "_nota": "Si no termino en gol, registrar como pase.",
+      "details": {
+        "centro":         { "type": "boolean", "label": "Centro" },
+        "balon_raso":     { "type": "boolean", "label": "Balon raso" },
+        "balon_elevado":  { "type": "boolean", "label": "Balon elevado" },
+        "dentro_area":    { "type": "boolean", "label": "Dentro del area" },
+        "detras_defensa": { "type": "boolean", "label": "Detras de la defensa" }
+      }
+    },
+
+    "pase": {
+      "label": "Pase",
+      "efectividad": "medible",
+      "_nota": "efectivo true/false permite calcular % de pases completados por jugador.",
+      "details": {
+        "efectivo":     { "type": "boolean", "label": "Efectivo" },
+        "pie_usado":    { "type": "enum",    "label": "Pie usado", "options": ["izq", "der"] },
+        "lateral":      { "type": "boolean", "label": "Lateral" },
+        "atras":        { "type": "boolean", "label": "Hacia atras" },
+        "adelante":     { "type": "boolean", "label": "Hacia adelante" },
+        "filtrado":     { "type": "boolean", "label": "Filtrado" },
+        "cambio_juego": { "type": "boolean", "label": "Cambio de juego" }
+      }
+    },
+
+    "tiro": {
+      "label": "Tiro",
+      "efectividad": "medible",
+      "_nota": "resultado enum 3 estados. zona_tiro enum reemplaza dentro_area/fuera_area excluyentes. tipo_jugada enum reemplaza juego_personal/juego_equipo.",
+      "details": {
+        "resultado":      { "type": "enum",    "label": "Resultado",      "options": ["gol", "al_arco", "fuera"] },
+        "zona_tiro":      { "type": "enum",    "label": "Zona de tiro",   "options": ["dentro_area", "fuera_area"] },
+        "cabeza":         { "type": "boolean", "label": "De cabeza" },
+        "primer_toque":   { "type": "boolean", "label": "Primer toque" },
+        "tipo_jugada":    { "type": "enum",    "label": "Tipo de jugada", "options": ["personal", "equipo"] }
+      }
+    },
+
+    "duelo": {
+      "label": "Duelo",
+      "efectividad": "medible",
+      "_nota": "ganado true/false permite calcular % duelos ganados. La zona del campo va en matches_events.location, no aqui.",
+      "details": {
+        "ganado": { "type": "boolean", "label": "Ganado" },
+        "tipo":   { "type": "enum",    "label": "Tipo",  "options": ["aire", "raso"] }
+      }
+    },
+
+    "centro": {
+      "label": "Centro",
+      "efectividad": "medible",
+      "_nota": "efectivo true si encontro companero, false si fue despejado o interceptado.",
+      "details": {
+        "efectivo":    { "type": "boolean", "label": "Efectivo" },
+        "pie_usado":   { "type": "enum",    "label": "Pie usado", "options": ["izq", "der"] },
+        "dentro_area": { "type": "boolean", "label": "Dentro del area" }
+      }
+    },
+
+    "recuperacion": {
+      "label": "Recuperacion",
+      "efectividad": "implicita",
+      "_nota": "Registrar implica que recupero el balon. Una recuperacion fallida es un duelo con ganado=false. La zona del campo va en matches_events.location.",
+      "details": {
+        "balon_aereo": { "type": "boolean", "label": "Balon aereo" }
+      }
+    }
+  }
+}

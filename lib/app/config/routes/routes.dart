@@ -218,6 +218,17 @@ class MyAssignmentsRoute extends GoRouteData with $MyAssignmentsRoute {
       const MyAssignmentsScreen();
 }
 
+@TypedGoRoute<LiveMatchRoute>(path: '/matches/:id/live', name: 'live_match')
+class LiveMatchRoute extends GoRouteData with $LiveMatchRoute {
+  const LiveMatchRoute({required this.id});
+
+  final int id;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      LiveMatchScreen(matchId: id);
+}
+
 // ════════════════════════════════════════════════════════════════════════════
 //  Extensiones push() para routes relativas
 //

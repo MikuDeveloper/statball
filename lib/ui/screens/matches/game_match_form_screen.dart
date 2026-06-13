@@ -50,12 +50,19 @@ class _GameMatchFormScreenState extends ConsumerState<GameMatchFormScreen>
     if (widget.matchId == null) return;
     final match = ref.read(gameMatchesProvider.notifier).byId(widget.matchId!);
     if (match == null) return;
-    _existing = match;
+    setState(() => _existing = match);
     ref.read(gameMatchFormProvider).form.patchValue({
       'date': match.date.toLocal(),
       'localTeamId': match.localTeamId,
       'visitorTeamId': match.visitorTeamId,
     });
+  }
+
+  bool get _isLiveWindow {
+    final date = _existing?.date;
+    if (date == null) return false;
+    // Visible cuando el partido empieza dentro de ±2h del momento actual.
+    return date.difference(DateTime.now()).inMinutes.abs() <= 120;
   }
 
   Future<void> _save() async {
@@ -191,7 +198,13 @@ class _GameMatchFormScreenState extends ConsumerState<GameMatchFormScreen>
                   // gestionar asignaciones de scouts (CRUD inmediato).
                   if (_isEdit) ...[
                     MatchScoutsSection(matchId: widget.matchId!),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
+                  ],
+
+                  // Botón "Iniciar visoría en vivo" — visible ±2h del partido.
+                  if (_isEdit && _isLiveWindow) ...[
+                    _LiveMatchButton(matchId: widget.matchId!),
+                    const SizedBox(height: 16),
                   ],
 
                   ReactiveFormConsumer(
@@ -544,6 +557,36 @@ class _PickerSkeleton extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─── _LiveMatchButton ────────────────────────────────────────────────────────
+// Visible solo cuando el partido está dentro de ±2h del momento actual.
+class _LiveMatchButton extends StatelessWidget {
+  const _LiveMatchButton({required this.matchId});
+
+  final int matchId;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 52,
+      child: FilledButton.icon(
+        onPressed: () => LiveMatchRoute(id: matchId).go(context),
+        icon: const Icon(Icons.sports_rounded, size: 20),
+        label: const Text(
+          'Iniciar visoría en vivo',
+          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+        ),
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.success,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
       ),
     );
   }
