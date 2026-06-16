@@ -38,6 +38,11 @@ part 'player_form_provider.g.dart';
       'country': FormControl<String>(value: ''),
       'photo': FormControl<String>(value: ''),
       'teamId': FormControl<String>(value: null),
+      // Scout responsable obligatorio (players.scout_id es NOT NULL en DB).
+      'scoutId': FormControl<String>(
+        value: null,
+        validators: [Validators.required],
+      ),
     }),
   );
 }
