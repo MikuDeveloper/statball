@@ -8,13 +8,14 @@ import 'package:statball/app/providers/global/players_provider.dart';
 import 'package:statball/app/providers/global/positions_stats_config_provider.dart';
 import 'package:statball/domain/models/positions_stats_config/positions_stats_config.dart';
 import 'package:statball/infrastructure/helpers/exceptions/match_event_api_exception.dart';
+import 'package:statball/domain/models/player/player.dart';
 
 import 'event_details_form.dart';
 import 'event_type_grid.dart';
 import 'quick_note_field.dart';
 import 'zone_grid_3x3.dart';
 
-// ─── LiveCapturePanel ─────────────────────────────────────────────────────────
+// ─── LiveCapturePanel ───────────────────────── ────────────────────────────────
 // Panel derecho de la pantalla de live match. Si no hay jugador seleccionado
 // muestra un estado vacío; si hay jugador muestra el formulario de captura.
 //
