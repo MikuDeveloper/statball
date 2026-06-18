@@ -7,6 +7,7 @@ import 'package:statball/app/providers/global/live_match_provider.dart';
 import 'package:statball/app/providers/global/match_events_provider.dart';
 import 'package:statball/app/providers/global/players_provider.dart';
 import 'package:statball/domain/models/matches_player/matches_player.dart';
+import 'package:statball/domain/models/player/player.dart';
 
 import 'matches_player_card.dart';
 

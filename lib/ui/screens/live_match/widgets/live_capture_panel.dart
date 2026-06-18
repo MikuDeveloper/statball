@@ -6,6 +6,7 @@ import 'package:statball/app/providers/global/live_match_provider.dart';
 import 'package:statball/app/providers/global/matches_players_provider.dart';
 import 'package:statball/app/providers/global/players_provider.dart';
 import 'package:statball/app/providers/global/positions_stats_config_provider.dart';
+import 'package:statball/domain/models/player/player.dart';
 import 'package:statball/domain/models/positions_stats_config/positions_stats_config.dart';
 import 'package:statball/infrastructure/helpers/exceptions/match_event_api_exception.dart';
 
