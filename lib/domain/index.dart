@@ -29,3 +29,13 @@ export 'use_cases/game_match_use_case.dart';
 export 'models/scout_match/repository/scout_match_repository.dart';
 export 'models/scout_match/scout_match.dart';
 export 'use_cases/scout_match_use_case.dart';
+
+export 'models/matches_player/repository/matches_player_repository.dart';
+export 'models/matches_player/matches_player.dart';
+export 'use_cases/matches_player_use_case.dart';
+
+export 'models/match_event/repository/match_event_repository.dart';
+export 'models/match_event/match_event.dart';
+export 'use_cases/match_event_use_case.dart';
+
+export 'models/positions_stats_config/positions_stats_config.dart';

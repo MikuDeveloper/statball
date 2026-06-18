@@ -18,6 +18,7 @@ List<RouteBase> get $appRoutes => [
   $scoutsRoute,
   $matchesRoute,
   $myAssignmentsRoute,
+  $liveMatchRoute,
 ];
 
 RouteBase get $rootRoute =>
@@ -573,6 +574,37 @@ mixin $MyAssignmentsRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/my-assignments');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $liveMatchRoute => GoRouteData.$route(
+  path: '/matches/:id/live',
+  name: 'live_match',
+  factory: $LiveMatchRoute._fromState,
+);
+
+mixin $LiveMatchRoute on GoRouteData {
+  static LiveMatchRoute _fromState(GoRouterState state) =>
+      LiveMatchRoute(id: int.parse(state.pathParameters['id']!));
+
+  LiveMatchRoute get _self => this as LiveMatchRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/matches/${Uri.encodeComponent(_self.id.toString())}/live',
+  );
 
   @override
   void go(BuildContext context) => context.go(location);

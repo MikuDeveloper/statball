@@ -21,3 +21,9 @@ export 'helpers/exceptions/game_match_api_exception.dart';
 
 export 'driven_adapter/scout_match/scout_match_api.dart';
 export 'helpers/exceptions/scout_match_api_exception.dart';
+
+export 'driven_adapter/matches_player/matches_player_api.dart';
+export 'helpers/exceptions/matches_player_api_exception.dart';
+
+export 'driven_adapter/match_event/match_event_api.dart';
+export 'helpers/exceptions/match_event_api_exception.dart';

@@ -61,3 +61,75 @@ enum FootPreference {
 
   String get label => dbValue;
 }
+
+// ─── PlayerPosition ──────────────────────────────────────────────────────────
+// Coincide con el enum `position_enum` de Postgres (posición del jugador en
+// un partido). Valor dbValue = string exacto almacenado en matches_players.
+enum PlayerPosition {
+  portero('PORTERO'),
+  lateral('LATERAL'),
+  central('CENTRAL'),
+  contencion('CONTENCION'),
+  mediocentro('MEDIOCENTRO'),
+  mediapunta('MEDIAPUNTA'),
+  extremo('EXTREMO'),
+  delantero('DELANTERO');
+
+  const PlayerPosition(this.dbValue);
+
+  final String dbValue;
+
+  static PlayerPosition fromDb(String value) {
+    for (final p in PlayerPosition.values) {
+      if (p.dbValue == value) return p;
+    }
+    throw ArgumentError('Posición desconocida: $value');
+  }
+
+  String get label => switch (this) {
+    .portero => 'Portero',
+    .lateral => 'Lateral',
+    .central => 'Central',
+    .contencion => 'Contención',
+    .mediocentro => 'Mediocentro',
+    .mediapunta => 'Mediapunta',
+    .extremo => 'Extremo',
+    .delantero => 'Delantero',
+  };
+
+  String get shortLabel => switch (this) {
+    .portero => 'POR',
+    .lateral => 'LAT',
+    .central => 'CEN',
+    .contencion => 'CDM',
+    .mediocentro => 'MED',
+    .mediapunta => 'CAM',
+    .extremo => 'EXT',
+    .delantero => 'DEL',
+  };
+}
+
+// ─── EvaluationStatus ────────────────────────────────────────────────────────
+// Coincide con el CHECK constraint de matches_players.evaluation_status.
+enum EvaluationStatus {
+  enEvaluacion('en_evaluacion'),
+  completada('completada'),
+  salioDeEvaluacion('salio_de_evaluacion');
+
+  const EvaluationStatus(this.dbValue);
+
+  final String dbValue;
+
+  static EvaluationStatus fromDb(String value) {
+    for (final s in EvaluationStatus.values) {
+      if (s.dbValue == value) return s;
+    }
+    throw ArgumentError('Status desconocido: $value');
+  }
+
+  String get label => switch (this) {
+    .enEvaluacion => 'En evaluación',
+    .completada => 'Completada',
+    .salioDeEvaluacion => 'Salió',
+  };
+}
