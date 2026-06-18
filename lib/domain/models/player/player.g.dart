@@ -22,6 +22,7 @@ _Player _$PlayerFromJson(Map<String, dynamic> json) => _Player(
   country: json['country'] as String?,
   photo: json['photo'] as String?,
   teamId: json['team_id'] as String?,
+  scoutId: json['scout_id'] as String,
 );
 
 Map<String, dynamic> _$PlayerToJson(_Player instance) => <String, dynamic>{
@@ -38,4 +39,5 @@ Map<String, dynamic> _$PlayerToJson(_Player instance) => <String, dynamic>{
   'country': instance.country,
   'photo': instance.photo,
   'team_id': instance.teamId,
+  'scout_id': instance.scoutId,
 };

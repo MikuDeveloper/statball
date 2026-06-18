@@ -38,6 +38,8 @@ abstract class Player with _$Player {
     String? country,
     String? photo,
     String? teamId,
+    // FK NOT NULL a scouts.id — scout responsable del jugador en el portfolio.
+    required String scoutId,
   }) = _Player;
 
   factory Player.empty() => const _Player(
@@ -45,6 +47,7 @@ abstract class Player with _$Player {
     lastname: '',
     preferredFoot: FootPreference.derecha,
     basicForces: false,
+    scoutId: '',
   );
 
   factory Player.fromJson(Map<String, dynamic> json) => _$PlayerFromJson(json);

@@ -8,8 +8,9 @@ import 'package:statball/app/config/themes/app_colors.dart';
 import 'package:statball/app/global/enums.dart' show FootPreference;
 import 'package:statball/app/providers/forms/player_form_provider.dart';
 import 'package:statball/app/providers/global/players_provider.dart';
+import 'package:statball/app/providers/global/scouts_provider.dart';
 import 'package:statball/app/providers/global/teams_provider.dart';
-import 'package:statball/domain/index.dart' show Player, Team;
+import 'package:statball/domain/index.dart' show Player, Scout, Team;
 import 'package:statball/infrastructure/index.dart' show PlayerApiException;
 import 'package:statball/ui/common/forms/sb_field_label.dart';
 import 'package:statball/ui/common/utils/snackbars_mixin.dart';
@@ -66,6 +67,7 @@ class _PlayerFormScreenState extends ConsumerState<PlayerFormScreen>
         'country': player.country ?? '',
         'photo': player.photo ?? '',
         'teamId': player.teamId,
+        'scoutId': player.scoutId,
       });
     } else if (widget.presetTeamId != null) {
       form.control('teamId').value = widget.presetTeamId;
@@ -107,6 +109,8 @@ class _PlayerFormScreenState extends ConsumerState<PlayerFormScreen>
       country: cleanText(values['country']),
       photo: cleanText(values['photo']),
       teamId: values['teamId'] as String?,
+      // Requerido por el form (Validators.required) → non-null al guardar.
+      scoutId: values['scoutId'] as String,
     );
 
     try {
@@ -192,6 +196,11 @@ class _PlayerFormScreenState extends ConsumerState<PlayerFormScreen>
                   const _SectionTitle('Equipo'),
                   const SizedBox(height: 12),
                   const _TeamPicker(),
+                  const SizedBox(height: 18),
+
+                  const _SectionTitle('Scout responsable'),
+                  const SizedBox(height: 12),
+                  const _ScoutPicker(),
                   const SizedBox(height: 18),
 
                   // Todo lo demás es opcional y se puede completar después.
@@ -775,6 +784,92 @@ class _TeamDropdown extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ─── _ScoutPicker ───────────────────────────────────────────────────────────
+// Dropdown obligatorio: cada jugador debe tener un scout responsable
+// (players.scout_id NOT NULL). Lista el catálogo completo de scouts.
+class _ScoutPicker extends ConsumerWidget {
+  const _ScoutPicker();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(scoutsProvider);
+
+    return async.when(
+      loading: () => const _PickerSkeleton(message: 'Cargando scouts...'),
+      error: (e, _) => _PickerSkeleton(message: 'No se pudo cargar: $e'),
+      data: (scouts) {
+        final valid = scouts.where((s) => s.id != null).toList();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const _RequiredLabel(text: 'SCOUT RESPONSABLE'),
+            const SizedBox(height: 6),
+            _ScoutDropdown(scouts: valid),
+          ],
+        );
+      },
+    );
+  }
+}
+
+// Dropdown enlazado a 'scoutId'. Sin opción nula: el campo es obligatorio,
+// la validación required del FormControl bloquea el guardado si no se elige.
+class _ScoutDropdown extends StatelessWidget {
+  final List<Scout> scouts;
+  const _ScoutDropdown({required this.scouts});
+
+  @override
+  Widget build(BuildContext context) {
+    return ReactiveDropdownField<String>(
+      formControlName: 'scoutId',
+      isExpanded: true,
+      hint: const Text(
+        'Selecciona un scout',
+        style: TextStyle(color: AppColors.textMuted),
+      ),
+      decoration: _decoration('Selecciona un scout'),
+      validationMessages: {ValidationMessage.required: (_) => 'Requerido'},
+      items: scouts
+          .map(
+            (s) => DropdownMenuItem<String>(
+              value: s.id,
+              child: Text(
+                '${s.name} ${s.lastname}',
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: AppColors.textPrimary),
+              ),
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+
+// Label con asterisco rojo para campos obligatorios.
+class _RequiredLabel extends StatelessWidget {
+  final String text;
+  const _RequiredLabel({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final base = Theme.of(
+      context,
+    ).textTheme.labelLarge?.copyWith(letterSpacing: 0.2);
+    return Text.rich(
+      TextSpan(
+        text: text,
+        style: base,
+        children: [
+          TextSpan(
+            text: ' *',
+            style: base?.copyWith(color: AppColors.error),
+          ),
+        ],
+      ),
     );
   }
 }
