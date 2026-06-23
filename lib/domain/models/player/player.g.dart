@@ -23,6 +23,7 @@ _Player _$PlayerFromJson(Map<String, dynamic> json) => _Player(
   photo: json['photo'] as String?,
   teamId: json['team_id'] as String?,
   scoutId: json['scout_id'] as String,
+  defaultPosition: _positionFromJson(json['default_position'] as String),
 );
 
 Map<String, dynamic> _$PlayerToJson(_Player instance) => <String, dynamic>{
@@ -40,4 +41,5 @@ Map<String, dynamic> _$PlayerToJson(_Player instance) => <String, dynamic>{
   'photo': instance.photo,
   'team_id': instance.teamId,
   'scout_id': instance.scoutId,
+  'default_position': _positionToJson(instance.defaultPosition),
 };

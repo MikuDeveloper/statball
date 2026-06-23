@@ -7,6 +7,7 @@ import 'package:statball/app/config/themes/app_colors.dart';
 import 'package:statball/app/providers/forms/game_match_form_provider.dart';
 import 'package:statball/app/providers/global/game_matches_provider.dart';
 import 'package:statball/app/providers/global/teams_provider.dart';
+import 'package:statball/app/providers/repositories/game_match_use_case_provider.dart';
 import 'package:statball/domain/index.dart';
 import 'package:statball/infrastructure/index.dart' show GameMatchApiException;
 import 'package:statball/ui/common/forms/sb_field_label.dart';
@@ -90,8 +91,26 @@ class _GameMatchFormScreenState extends ConsumerState<GameMatchFormScreen>
         await notifier.updateMatch(match);
         messenger.showSnackBar(successSnackBar(message: 'Partido actualizado'));
       } else {
-        await notifier.create(match);
-        messenger.showSnackBar(successSnackBar(message: 'Partido programado'));
+        final created = await notifier.create(match);
+        // Auto-carga de matches_players desde el catálogo. Aislado en su propio
+        // try: si la RPC falla, el partido ya quedó creado igual.
+        var autoCreated = 0;
+        try {
+          if (created.id != null) {
+            autoCreated = await ref
+                .read(gameMatchUseCaseProvider)
+                .autoInitializeMatchPlayers(created.id!);
+          }
+        } catch (_) {
+          // No bloquea: el scout puede agregar jugadores manualmente.
+        }
+        messenger.showSnackBar(
+          successSnackBar(
+            message: autoCreated > 0
+                ? 'Partido creado con $autoCreated jugadores precargados del catálogo'
+                : 'Partido creado. Agrega jugadores manualmente desde el live capture.',
+          ),
+        );
       }
       if (navigator.canPop()) navigator.pop();
     } on GameMatchApiException catch (e) {

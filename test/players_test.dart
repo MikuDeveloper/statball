@@ -1,7 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:statball/app/global/enums.dart' show FootPreference;
+import 'package:statball/app/global/enums.dart'
+    show FootPreference, PlayerPosition;
 import 'package:statball/app/providers/forms/player_form_provider.dart';
 import 'package:statball/domain/index.dart' show Player, PlayerX;
 
@@ -15,6 +16,7 @@ void main() {
         preferredFoot: FootPreference.derecha,
         basicForces: true,
         scoutId: 'scout-uuid',
+        defaultPosition: PlayerPosition.delantero,
       );
       expect(p.fullName, 'Andrés García');
       expect(p.age, anyOf(15, 16));
@@ -27,6 +29,7 @@ void main() {
         preferredFoot: FootPreference.izquierda,
         basicForces: false,
         scoutId: 'scout-uuid',
+        defaultPosition: PlayerPosition.mediocentro,
       );
       expect(p.age, isNull, reason: 'Sin birthday → age null');
       final back = Player.fromJson(p.toJson());
@@ -41,6 +44,7 @@ void main() {
         basicForces: true,
         teamId: 'team-uuid',
         scoutId: 'scout-123',
+        defaultPosition: PlayerPosition.extremo,
       );
       final json = p.toJson();
       expect(json['scout_id'], 'scout-123', reason: 'FieldRename.snake');
@@ -48,6 +52,26 @@ void main() {
       final back = Player.fromJson(json);
       expect(back.scoutId, 'scout-123');
       expect(back.teamId, 'team-uuid');
+    });
+
+    test('JSON roundtrip conserva default_position (snake_case + dbValue)', () {
+      const p = Player(
+        firstname: 'Manuel',
+        lastname: 'Neuer',
+        preferredFoot: FootPreference.derecha,
+        basicForces: true,
+        scoutId: 'scout-1',
+        defaultPosition: PlayerPosition.portero,
+      );
+      final json = p.toJson();
+      expect(json['default_position'], 'PORTERO', reason: 'enum dbValue');
+
+      final back = Player.fromJson(json);
+      expect(back.defaultPosition, PlayerPosition.portero);
+    });
+
+    test('default_position por defecto es MEDIOCENTRO en Player.empty', () {
+      expect(Player.empty().defaultPosition, PlayerPosition.mediocentro);
     });
   });
 

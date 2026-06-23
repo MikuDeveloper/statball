@@ -14,6 +14,7 @@ Future<void> showPlayerOptionsMenu({
   required BuildContext context,
   required WidgetRef ref,
   required MatchesPlayer player,
+  required String playerName,
   required int matchId,
   required RelativeRect position,
 }) async {
@@ -87,6 +88,7 @@ Future<void> showPlayerOptionsMenu({
         context: context,
         ref: ref,
         player: player,
+        playerName: playerName,
         matchId: matchId,
       );
   }
@@ -123,6 +125,7 @@ Future<void> _removePlayer({
   required BuildContext context,
   required WidgetRef ref,
   required MatchesPlayer player,
+  required String playerName,
   required int matchId,
 }) async {
   if (player.id == null || !context.mounted) return;
@@ -132,8 +135,9 @@ Future<void> _removePlayer({
     builder: (ctx) => AlertDialog(
       backgroundColor: AppColors.card,
       title: const Text('Remover jugador'),
-      content: const Text(
-        '¿Remover este jugador del partido? Se perderán sus eventos registrados.',
+      content: Text(
+        '¿Remover a $playerName de esta visoría? '
+        'Se borrarán los eventos capturados para este jugador.',
       ),
       actions: [
         TextButton(

@@ -1,6 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import 'package:statball/app/global/enums.dart' show FootPreference;
+import 'package:statball/app/global/enums.dart'
+    show FootPreference, PlayerPosition;
 
 part 'player.freezed.dart';
 part 'player.g.dart';
@@ -8,6 +9,10 @@ part 'player.g.dart';
 // Converters non-null para el enum foot_enum (NOT NULL en el schema).
 String _footToJson(FootPreference f) => f.dbValue;
 FootPreference _footFromJson(String raw) => FootPreference.fromDb(raw);
+
+// Converters para position_enum (default_position, NOT NULL DEFAULT MEDIOCENTRO).
+String _positionToJson(PlayerPosition p) => p.dbValue;
+PlayerPosition _positionFromJson(String raw) => PlayerPosition.fromDb(raw);
 
 // Postgres devuelve `numeric` como String para no perder precisión.
 // Aceptamos String, num o null (la columna es ahora opcional).
@@ -40,6 +45,9 @@ abstract class Player with _$Player {
     String? teamId,
     // FK NOT NULL a scouts.id — scout responsable del jugador en el portfolio.
     required String scoutId,
+    // position_enum NOT NULL DEFAULT MEDIOCENTRO — posición principal del jugador.
+    @JsonKey(fromJson: _positionFromJson, toJson: _positionToJson)
+    required PlayerPosition defaultPosition,
   }) = _Player;
 
   factory Player.empty() => const _Player(
@@ -48,6 +56,7 @@ abstract class Player with _$Player {
     preferredFoot: FootPreference.derecha,
     basicForces: false,
     scoutId: '',
+    defaultPosition: PlayerPosition.mediocentro,
   );
 
   factory Player.fromJson(Map<String, dynamic> json) => _$PlayerFromJson(json);

@@ -28,6 +28,8 @@ class FakeGameMatchUseCase implements GameMatchUseCase {
   Future<GameMatch> update(GameMatch m) => throw UnimplementedError();
   @override
   Future<void> delete(int id) => throw UnimplementedError();
+  @override
+  Future<int> autoInitializeMatchPlayers(int matchId) async => 0;
 }
 
 // Fake in-memory del use case de asignaciones scout↔partido: simula create

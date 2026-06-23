@@ -9,6 +9,7 @@ import 'package:statball/app/providers/global/players_provider.dart';
 import 'package:statball/domain/models/matches_player/matches_player.dart';
 import 'package:statball/domain/models/player/player.dart';
 
+import 'add_player_sheet.dart';
 import 'matches_player_card.dart';
 
 // ─── LiveMatchSidebar ────────────────────────────────────────────────────────
@@ -122,16 +123,13 @@ class LiveMatchSidebar extends ConsumerWidget {
                   ),
           ),
 
-          // ── Botón Agregar jugador (stub 9c) ─────────────────────────────
+          // ── Botón Agregar jugador → modal Catálogo / Crear ──────────────
           const Divider(height: 1, color: AppColors.cardBorder),
           Padding(
             padding: const EdgeInsets.all(8),
             child: OutlinedButton.icon(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Disponible en deliverable 9c')),
-                );
-              },
+              onPressed: () =>
+                  showAddPlayerSheet(context: context, matchId: matchId),
               icon: const Icon(Icons.add_rounded, size: 16),
               label: const Text(
                 'Agregar jugador',

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Player {
 
- String? get id; String get firstname; String get lastname; DateTime? get birthday;@JsonKey(fromJson: _numFromJson, toJson: _numToJson) double? get height;@JsonKey(fromJson: _numFromJson, toJson: _numToJson) double? get weight; String? get notes;@JsonKey(fromJson: _footFromJson, toJson: _footToJson) FootPreference get preferredFoot; bool get basicForces; String? get city; String? get country; String? get photo; String? get teamId; String get scoutId;
+ String? get id; String get firstname; String get lastname; DateTime? get birthday;@JsonKey(fromJson: _numFromJson, toJson: _numToJson) double? get height;@JsonKey(fromJson: _numFromJson, toJson: _numToJson) double? get weight; String? get notes;@JsonKey(fromJson: _footFromJson, toJson: _footToJson) FootPreference get preferredFoot; bool get basicForces; String? get city; String? get country; String? get photo; String? get teamId; String get scoutId;@JsonKey(fromJson: _positionFromJson, toJson: _positionToJson) PlayerPosition get defaultPosition;
 /// Create a copy of Player
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $PlayerCopyWith<Player> get copyWith => _$PlayerCopyWithImpl<Player>(this as Pla
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Player&&(identical(other.id, id) || other.id == id)&&(identical(other.firstname, firstname) || other.firstname == firstname)&&(identical(other.lastname, lastname) || other.lastname == lastname)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&(identical(other.height, height) || other.height == height)&&(identical(other.weight, weight) || other.weight == weight)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.preferredFoot, preferredFoot) || other.preferredFoot == preferredFoot)&&(identical(other.basicForces, basicForces) || other.basicForces == basicForces)&&(identical(other.city, city) || other.city == city)&&(identical(other.country, country) || other.country == country)&&(identical(other.photo, photo) || other.photo == photo)&&(identical(other.teamId, teamId) || other.teamId == teamId)&&(identical(other.scoutId, scoutId) || other.scoutId == scoutId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Player&&(identical(other.id, id) || other.id == id)&&(identical(other.firstname, firstname) || other.firstname == firstname)&&(identical(other.lastname, lastname) || other.lastname == lastname)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&(identical(other.height, height) || other.height == height)&&(identical(other.weight, weight) || other.weight == weight)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.preferredFoot, preferredFoot) || other.preferredFoot == preferredFoot)&&(identical(other.basicForces, basicForces) || other.basicForces == basicForces)&&(identical(other.city, city) || other.city == city)&&(identical(other.country, country) || other.country == country)&&(identical(other.photo, photo) || other.photo == photo)&&(identical(other.teamId, teamId) || other.teamId == teamId)&&(identical(other.scoutId, scoutId) || other.scoutId == scoutId)&&(identical(other.defaultPosition, defaultPosition) || other.defaultPosition == defaultPosition));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,firstname,lastname,birthday,height,weight,notes,preferredFoot,basicForces,city,country,photo,teamId,scoutId);
+int get hashCode => Object.hash(runtimeType,id,firstname,lastname,birthday,height,weight,notes,preferredFoot,basicForces,city,country,photo,teamId,scoutId,defaultPosition);
 
 @override
 String toString() {
-  return 'Player(id: $id, firstname: $firstname, lastname: $lastname, birthday: $birthday, height: $height, weight: $weight, notes: $notes, preferredFoot: $preferredFoot, basicForces: $basicForces, city: $city, country: $country, photo: $photo, teamId: $teamId, scoutId: $scoutId)';
+  return 'Player(id: $id, firstname: $firstname, lastname: $lastname, birthday: $birthday, height: $height, weight: $weight, notes: $notes, preferredFoot: $preferredFoot, basicForces: $basicForces, city: $city, country: $country, photo: $photo, teamId: $teamId, scoutId: $scoutId, defaultPosition: $defaultPosition)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $PlayerCopyWith<$Res>  {
   factory $PlayerCopyWith(Player value, $Res Function(Player) _then) = _$PlayerCopyWithImpl;
 @useResult
 $Res call({
- String? id, String firstname, String lastname, DateTime? birthday,@JsonKey(fromJson: _numFromJson, toJson: _numToJson) double? height,@JsonKey(fromJson: _numFromJson, toJson: _numToJson) double? weight, String? notes,@JsonKey(fromJson: _footFromJson, toJson: _footToJson) FootPreference preferredFoot, bool basicForces, String? city, String? country, String? photo, String? teamId, String scoutId
+ String? id, String firstname, String lastname, DateTime? birthday,@JsonKey(fromJson: _numFromJson, toJson: _numToJson) double? height,@JsonKey(fromJson: _numFromJson, toJson: _numToJson) double? weight, String? notes,@JsonKey(fromJson: _footFromJson, toJson: _footToJson) FootPreference preferredFoot, bool basicForces, String? city, String? country, String? photo, String? teamId, String scoutId,@JsonKey(fromJson: _positionFromJson, toJson: _positionToJson) PlayerPosition defaultPosition
 });
 
 
@@ -65,7 +65,7 @@ class _$PlayerCopyWithImpl<$Res>
 
 /// Create a copy of Player
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? firstname = null,Object? lastname = null,Object? birthday = freezed,Object? height = freezed,Object? weight = freezed,Object? notes = freezed,Object? preferredFoot = null,Object? basicForces = null,Object? city = freezed,Object? country = freezed,Object? photo = freezed,Object? teamId = freezed,Object? scoutId = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? firstname = null,Object? lastname = null,Object? birthday = freezed,Object? height = freezed,Object? weight = freezed,Object? notes = freezed,Object? preferredFoot = null,Object? basicForces = null,Object? city = freezed,Object? country = freezed,Object? photo = freezed,Object? teamId = freezed,Object? scoutId = null,Object? defaultPosition = null,}) {
   return _then(_self.copyWith(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String?,firstname: null == firstname ? _self.firstname : firstname // ignore: cast_nullable_to_non_nullable
@@ -81,7 +81,8 @@ as String?,country: freezed == country ? _self.country : country // ignore: cast
 as String?,photo: freezed == photo ? _self.photo : photo // ignore: cast_nullable_to_non_nullable
 as String?,teamId: freezed == teamId ? _self.teamId : teamId // ignore: cast_nullable_to_non_nullable
 as String?,scoutId: null == scoutId ? _self.scoutId : scoutId // ignore: cast_nullable_to_non_nullable
-as String,
+as String,defaultPosition: null == defaultPosition ? _self.defaultPosition : defaultPosition // ignore: cast_nullable_to_non_nullable
+as PlayerPosition,
   ));
 }
 
@@ -166,10 +167,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String firstname,  String lastname,  DateTime? birthday, @JsonKey(fromJson: _numFromJson, toJson: _numToJson)  double? height, @JsonKey(fromJson: _numFromJson, toJson: _numToJson)  double? weight,  String? notes, @JsonKey(fromJson: _footFromJson, toJson: _footToJson)  FootPreference preferredFoot,  bool basicForces,  String? city,  String? country,  String? photo,  String? teamId,  String scoutId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String firstname,  String lastname,  DateTime? birthday, @JsonKey(fromJson: _numFromJson, toJson: _numToJson)  double? height, @JsonKey(fromJson: _numFromJson, toJson: _numToJson)  double? weight,  String? notes, @JsonKey(fromJson: _footFromJson, toJson: _footToJson)  FootPreference preferredFoot,  bool basicForces,  String? city,  String? country,  String? photo,  String? teamId,  String scoutId, @JsonKey(fromJson: _positionFromJson, toJson: _positionToJson)  PlayerPosition defaultPosition)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Player() when $default != null:
-return $default(_that.id,_that.firstname,_that.lastname,_that.birthday,_that.height,_that.weight,_that.notes,_that.preferredFoot,_that.basicForces,_that.city,_that.country,_that.photo,_that.teamId,_that.scoutId);case _:
+return $default(_that.id,_that.firstname,_that.lastname,_that.birthday,_that.height,_that.weight,_that.notes,_that.preferredFoot,_that.basicForces,_that.city,_that.country,_that.photo,_that.teamId,_that.scoutId,_that.defaultPosition);case _:
   return orElse();
 
 }
@@ -187,10 +188,10 @@ return $default(_that.id,_that.firstname,_that.lastname,_that.birthday,_that.hei
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String firstname,  String lastname,  DateTime? birthday, @JsonKey(fromJson: _numFromJson, toJson: _numToJson)  double? height, @JsonKey(fromJson: _numFromJson, toJson: _numToJson)  double? weight,  String? notes, @JsonKey(fromJson: _footFromJson, toJson: _footToJson)  FootPreference preferredFoot,  bool basicForces,  String? city,  String? country,  String? photo,  String? teamId,  String scoutId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String firstname,  String lastname,  DateTime? birthday, @JsonKey(fromJson: _numFromJson, toJson: _numToJson)  double? height, @JsonKey(fromJson: _numFromJson, toJson: _numToJson)  double? weight,  String? notes, @JsonKey(fromJson: _footFromJson, toJson: _footToJson)  FootPreference preferredFoot,  bool basicForces,  String? city,  String? country,  String? photo,  String? teamId,  String scoutId, @JsonKey(fromJson: _positionFromJson, toJson: _positionToJson)  PlayerPosition defaultPosition)  $default,) {final _that = this;
 switch (_that) {
 case _Player():
-return $default(_that.id,_that.firstname,_that.lastname,_that.birthday,_that.height,_that.weight,_that.notes,_that.preferredFoot,_that.basicForces,_that.city,_that.country,_that.photo,_that.teamId,_that.scoutId);case _:
+return $default(_that.id,_that.firstname,_that.lastname,_that.birthday,_that.height,_that.weight,_that.notes,_that.preferredFoot,_that.basicForces,_that.city,_that.country,_that.photo,_that.teamId,_that.scoutId,_that.defaultPosition);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -207,10 +208,10 @@ return $default(_that.id,_that.firstname,_that.lastname,_that.birthday,_that.hei
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String firstname,  String lastname,  DateTime? birthday, @JsonKey(fromJson: _numFromJson, toJson: _numToJson)  double? height, @JsonKey(fromJson: _numFromJson, toJson: _numToJson)  double? weight,  String? notes, @JsonKey(fromJson: _footFromJson, toJson: _footToJson)  FootPreference preferredFoot,  bool basicForces,  String? city,  String? country,  String? photo,  String? teamId,  String scoutId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String firstname,  String lastname,  DateTime? birthday, @JsonKey(fromJson: _numFromJson, toJson: _numToJson)  double? height, @JsonKey(fromJson: _numFromJson, toJson: _numToJson)  double? weight,  String? notes, @JsonKey(fromJson: _footFromJson, toJson: _footToJson)  FootPreference preferredFoot,  bool basicForces,  String? city,  String? country,  String? photo,  String? teamId,  String scoutId, @JsonKey(fromJson: _positionFromJson, toJson: _positionToJson)  PlayerPosition defaultPosition)?  $default,) {final _that = this;
 switch (_that) {
 case _Player() when $default != null:
-return $default(_that.id,_that.firstname,_that.lastname,_that.birthday,_that.height,_that.weight,_that.notes,_that.preferredFoot,_that.basicForces,_that.city,_that.country,_that.photo,_that.teamId,_that.scoutId);case _:
+return $default(_that.id,_that.firstname,_that.lastname,_that.birthday,_that.height,_that.weight,_that.notes,_that.preferredFoot,_that.basicForces,_that.city,_that.country,_that.photo,_that.teamId,_that.scoutId,_that.defaultPosition);case _:
   return null;
 
 }
@@ -222,7 +223,7 @@ return $default(_that.id,_that.firstname,_that.lastname,_that.birthday,_that.hei
 
 @JsonSerializable(fieldRename: FieldRename.snake)
 class _Player implements Player {
-  const _Player({this.id, required this.firstname, required this.lastname, this.birthday, @JsonKey(fromJson: _numFromJson, toJson: _numToJson) this.height, @JsonKey(fromJson: _numFromJson, toJson: _numToJson) this.weight, this.notes, @JsonKey(fromJson: _footFromJson, toJson: _footToJson) required this.preferredFoot, required this.basicForces, this.city, this.country, this.photo, this.teamId, required this.scoutId});
+  const _Player({this.id, required this.firstname, required this.lastname, this.birthday, @JsonKey(fromJson: _numFromJson, toJson: _numToJson) this.height, @JsonKey(fromJson: _numFromJson, toJson: _numToJson) this.weight, this.notes, @JsonKey(fromJson: _footFromJson, toJson: _footToJson) required this.preferredFoot, required this.basicForces, this.city, this.country, this.photo, this.teamId, required this.scoutId, @JsonKey(fromJson: _positionFromJson, toJson: _positionToJson) required this.defaultPosition});
   factory _Player.fromJson(Map<String, dynamic> json) => _$PlayerFromJson(json);
 
 @override final  String? id;
@@ -239,6 +240,7 @@ class _Player implements Player {
 @override final  String? photo;
 @override final  String? teamId;
 @override final  String scoutId;
+@override@JsonKey(fromJson: _positionFromJson, toJson: _positionToJson) final  PlayerPosition defaultPosition;
 
 /// Create a copy of Player
 /// with the given fields replaced by the non-null parameter values.
@@ -253,16 +255,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Player&&(identical(other.id, id) || other.id == id)&&(identical(other.firstname, firstname) || other.firstname == firstname)&&(identical(other.lastname, lastname) || other.lastname == lastname)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&(identical(other.height, height) || other.height == height)&&(identical(other.weight, weight) || other.weight == weight)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.preferredFoot, preferredFoot) || other.preferredFoot == preferredFoot)&&(identical(other.basicForces, basicForces) || other.basicForces == basicForces)&&(identical(other.city, city) || other.city == city)&&(identical(other.country, country) || other.country == country)&&(identical(other.photo, photo) || other.photo == photo)&&(identical(other.teamId, teamId) || other.teamId == teamId)&&(identical(other.scoutId, scoutId) || other.scoutId == scoutId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Player&&(identical(other.id, id) || other.id == id)&&(identical(other.firstname, firstname) || other.firstname == firstname)&&(identical(other.lastname, lastname) || other.lastname == lastname)&&(identical(other.birthday, birthday) || other.birthday == birthday)&&(identical(other.height, height) || other.height == height)&&(identical(other.weight, weight) || other.weight == weight)&&(identical(other.notes, notes) || other.notes == notes)&&(identical(other.preferredFoot, preferredFoot) || other.preferredFoot == preferredFoot)&&(identical(other.basicForces, basicForces) || other.basicForces == basicForces)&&(identical(other.city, city) || other.city == city)&&(identical(other.country, country) || other.country == country)&&(identical(other.photo, photo) || other.photo == photo)&&(identical(other.teamId, teamId) || other.teamId == teamId)&&(identical(other.scoutId, scoutId) || other.scoutId == scoutId)&&(identical(other.defaultPosition, defaultPosition) || other.defaultPosition == defaultPosition));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,firstname,lastname,birthday,height,weight,notes,preferredFoot,basicForces,city,country,photo,teamId,scoutId);
+int get hashCode => Object.hash(runtimeType,id,firstname,lastname,birthday,height,weight,notes,preferredFoot,basicForces,city,country,photo,teamId,scoutId,defaultPosition);
 
 @override
 String toString() {
-  return 'Player(id: $id, firstname: $firstname, lastname: $lastname, birthday: $birthday, height: $height, weight: $weight, notes: $notes, preferredFoot: $preferredFoot, basicForces: $basicForces, city: $city, country: $country, photo: $photo, teamId: $teamId, scoutId: $scoutId)';
+  return 'Player(id: $id, firstname: $firstname, lastname: $lastname, birthday: $birthday, height: $height, weight: $weight, notes: $notes, preferredFoot: $preferredFoot, basicForces: $basicForces, city: $city, country: $country, photo: $photo, teamId: $teamId, scoutId: $scoutId, defaultPosition: $defaultPosition)';
 }
 
 
@@ -273,7 +275,7 @@ abstract mixin class _$PlayerCopyWith<$Res> implements $PlayerCopyWith<$Res> {
   factory _$PlayerCopyWith(_Player value, $Res Function(_Player) _then) = __$PlayerCopyWithImpl;
 @override @useResult
 $Res call({
- String? id, String firstname, String lastname, DateTime? birthday,@JsonKey(fromJson: _numFromJson, toJson: _numToJson) double? height,@JsonKey(fromJson: _numFromJson, toJson: _numToJson) double? weight, String? notes,@JsonKey(fromJson: _footFromJson, toJson: _footToJson) FootPreference preferredFoot, bool basicForces, String? city, String? country, String? photo, String? teamId, String scoutId
+ String? id, String firstname, String lastname, DateTime? birthday,@JsonKey(fromJson: _numFromJson, toJson: _numToJson) double? height,@JsonKey(fromJson: _numFromJson, toJson: _numToJson) double? weight, String? notes,@JsonKey(fromJson: _footFromJson, toJson: _footToJson) FootPreference preferredFoot, bool basicForces, String? city, String? country, String? photo, String? teamId, String scoutId,@JsonKey(fromJson: _positionFromJson, toJson: _positionToJson) PlayerPosition defaultPosition
 });
 
 
@@ -290,7 +292,7 @@ class __$PlayerCopyWithImpl<$Res>
 
 /// Create a copy of Player
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? firstname = null,Object? lastname = null,Object? birthday = freezed,Object? height = freezed,Object? weight = freezed,Object? notes = freezed,Object? preferredFoot = null,Object? basicForces = null,Object? city = freezed,Object? country = freezed,Object? photo = freezed,Object? teamId = freezed,Object? scoutId = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? firstname = null,Object? lastname = null,Object? birthday = freezed,Object? height = freezed,Object? weight = freezed,Object? notes = freezed,Object? preferredFoot = null,Object? basicForces = null,Object? city = freezed,Object? country = freezed,Object? photo = freezed,Object? teamId = freezed,Object? scoutId = null,Object? defaultPosition = null,}) {
   return _then(_Player(
 id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String?,firstname: null == firstname ? _self.firstname : firstname // ignore: cast_nullable_to_non_nullable
@@ -306,7 +308,8 @@ as String?,country: freezed == country ? _self.country : country // ignore: cast
 as String?,photo: freezed == photo ? _self.photo : photo // ignore: cast_nullable_to_non_nullable
 as String?,teamId: freezed == teamId ? _self.teamId : teamId // ignore: cast_nullable_to_non_nullable
 as String?,scoutId: null == scoutId ? _self.scoutId : scoutId // ignore: cast_nullable_to_non_nullable
-as String,
+as String,defaultPosition: null == defaultPosition ? _self.defaultPosition : defaultPosition // ignore: cast_nullable_to_non_nullable
+as PlayerPosition,
   ));
 }
 

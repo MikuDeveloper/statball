@@ -56,4 +56,4 @@ final class PlayerFormProvider
   }
 }
 
-String _$playerFormHash() => r'818a9126cdd9ceb6f2dc0ef98c95797706e13d60';
+String _$playerFormHash() => r'6173c3cd68f61da2801ad398d98dfc340b9d9430';

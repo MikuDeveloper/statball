@@ -5,7 +5,8 @@ import 'package:reactive_forms/reactive_forms.dart';
 
 import 'package:statball/app/config/routes/routes.dart';
 import 'package:statball/app/config/themes/app_colors.dart';
-import 'package:statball/app/global/enums.dart' show FootPreference;
+import 'package:statball/app/global/enums.dart'
+    show FootPreference, PlayerPosition;
 import 'package:statball/app/providers/forms/player_form_provider.dart';
 import 'package:statball/app/providers/global/players_provider.dart';
 import 'package:statball/app/providers/global/scouts_provider.dart';
@@ -68,6 +69,7 @@ class _PlayerFormScreenState extends ConsumerState<PlayerFormScreen>
         'photo': player.photo ?? '',
         'teamId': player.teamId,
         'scoutId': player.scoutId,
+        'defaultPosition': player.defaultPosition,
       });
     } else if (widget.presetTeamId != null) {
       form.control('teamId').value = widget.presetTeamId;
@@ -111,6 +113,7 @@ class _PlayerFormScreenState extends ConsumerState<PlayerFormScreen>
       teamId: values['teamId'] as String?,
       // Requerido por el form (Validators.required) → non-null al guardar.
       scoutId: values['scoutId'] as String,
+      defaultPosition: values['defaultPosition'] as PlayerPosition,
     );
 
     try {
@@ -189,6 +192,10 @@ class _PlayerFormScreenState extends ConsumerState<PlayerFormScreen>
                   const SbFieldLabel(text: 'PIE PREFERIDO *'),
                   const SizedBox(height: 8),
                   const _FootPicker(),
+                  const SizedBox(height: 16),
+                  const SbFieldLabel(text: 'POSICIÓN PRINCIPAL *'),
+                  const SizedBox(height: 8),
+                  const _PositionPicker(),
                   const SizedBox(height: 14),
                   const _BasicForcesSwitch(),
                   const SizedBox(height: 18),
@@ -702,6 +709,84 @@ class _FootChip extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── _PositionPicker ──────────────────────────────────────────────────────────
+// Chips compactos con las 8 posiciones. Required, default MEDIOCENTRO.
+class _PositionPicker extends StatelessWidget {
+  const _PositionPicker();
+
+  @override
+  Widget build(BuildContext context) {
+    final control =
+        (ReactiveForm.of(context) as FormGroup?)!.control('defaultPosition')
+            as FormControl<PlayerPosition>;
+
+    return StreamBuilder<PlayerPosition?>(
+      stream: control.valueChanges,
+      initialData: control.value,
+      builder: (_, snapshot) {
+        final current = snapshot.data;
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final p in PlayerPosition.values)
+              _PositionChip(
+                position: p,
+                selected: current == p,
+                onTap: () {
+                  control.value = p;
+                  control.markAsTouched();
+                },
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _PositionChip extends StatelessWidget {
+  final PlayerPosition position;
+  final bool selected;
+  final VoidCallback onTap;
+  const _PositionChip({
+    required this.position,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = AppColors.accentDark;
+    return Material(
+      color: selected ? color : AppColors.card,
+      borderRadius: BorderRadius.circular(10),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: selected ? color : AppColors.cardBorder,
+              width: selected ? 1.6 : 1,
+            ),
+          ),
+          child: Text(
+            position.label,
+            style: TextStyle(
+              color: selected ? AppColors.onAccent : AppColors.textPrimary,
+              fontSize: 12.5,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            ),
           ),
         ),
       ),

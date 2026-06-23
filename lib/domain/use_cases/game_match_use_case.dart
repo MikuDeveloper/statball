@@ -15,4 +15,7 @@ class GameMatchUseCase {
   Future<GameMatch> update(GameMatch match) => _repository.update(match);
 
   Future<void> delete(int id) => _repository.delete(id);
+
+  Future<int> autoInitializeMatchPlayers(int matchId) =>
+      _repository.autoInitializeMatchPlayers(matchId);
 }

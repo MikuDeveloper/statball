@@ -131,6 +131,7 @@ class MatchesPlayerCard extends ConsumerWidget {
       context: btnCtx,
       ref: ref,
       player: player,
+      playerName: playerName,
       matchId: matchId,
       position: position,
     );

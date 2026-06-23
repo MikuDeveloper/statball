@@ -105,6 +105,27 @@ class GameMatchApi implements GameMatchRepository {
   }
 
   @override
+  Future<int> autoInitializeMatchPlayers(int matchId) async {
+    try {
+      final result = await _supabase.rpc<dynamic>(
+        'auto_initialize_match_players',
+        params: {'p_match_id': matchId},
+      );
+      final n = (result as num?)?.toInt() ?? 0;
+      _log.info('Auto-cargados $n jugadores en el match $matchId');
+      return n;
+    } on PostgrestException catch (e) {
+      _log.severe(e.toString());
+      throw GameMatchApiException(_mapPgCode(e));
+    } on SocketException {
+      throw GameMatchApiException('network_error');
+    } catch (e) {
+      _log.severe(e.toString());
+      throw GameMatchApiException('unknow_error');
+    }
+  }
+
+  @override
   Future<void> delete(int id) async {
     try {
       await _supabase.from(_table).delete().eq('id', id);

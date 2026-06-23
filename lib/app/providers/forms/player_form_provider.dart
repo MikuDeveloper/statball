@@ -1,7 +1,8 @@
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:statball/app/global/enums.dart' show FootPreference;
+import 'package:statball/app/global/enums.dart'
+    show FootPreference, PlayerPosition;
 
 part 'player_form_provider.g.dart';
 
@@ -41,6 +42,11 @@ part 'player_form_provider.g.dart';
       // Scout responsable obligatorio (players.scout_id es NOT NULL en DB).
       'scoutId': FormControl<String>(
         value: null,
+        validators: [Validators.required],
+      ),
+      // Posición principal (players.default_position NOT NULL DEFAULT MEDIOCENTRO).
+      'defaultPosition': FormControl<PlayerPosition>(
+        value: PlayerPosition.mediocentro,
         validators: [Validators.required],
       ),
     }),
