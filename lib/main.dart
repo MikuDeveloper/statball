@@ -1,8 +1,31 @@
+import 'package:flutter/foundation.dart'
+    show kIsWeb, LicenseRegistry, LicenseEntryWithLineBreaks;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:statball/app/providers/theme_mode_cubit.dart';
 
 import 'app/app.dart';
+import 'app/global/assets.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const StatballApp());
+  LicenseRegistry.addLicense(() async* {
+    final String license = await rootBundle.loadString(
+      '${Assets.interFontFolder}/OFL.txt',
+    );
+    yield LicenseEntryWithLineBreaks(<String>['google_fonts'], license);
+  });
+  final storage = kIsWeb
+      ? HydratedStorageDirectory.web
+      : HydratedStorageDirectory((await getApplicationSupportDirectory()).path);
+  HydratedBloc.storage = await HydratedStorage.build(storageDirectory: storage);
+  runApp(
+    MultiBlocProvider(
+      providers: [BlocProvider(create: (context) => ThemeModeCubit())],
+      child: const StatballApp(),
+    ),
+  );
 }
