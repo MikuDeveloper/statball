@@ -13,6 +13,7 @@ dependencies:
   google_fonts: ^8.1.0
   hydrated_bloc: ^11.0.0
   path_provider: ^2.1.6
+  reactive_forms: ^18.2.2
   routemaster: ^1.1.1
 
 dev_dependencies:
@@ -25,4 +26,29 @@ flutter:
 
   assets:
     - assets/
+    - assets/fonts/
     - assets/fonts/inter/
+    - assets/fonts/monoton/
+
+  # Agrega esta sección específica para las fuentes
+  # fonts:
+  #   - family: Inter
+  #     fonts:
+  #       - asset: assets/fonts/inter/Inter_18pt-Thin.ttf
+  #         weight: 100
+  #       - asset: assets/fonts/inter/Inter_18pt-ExtraLight.ttf
+  #         weight: 200
+  #       - asset: assets/fonts/inter/Inter_18pt-Light.ttf
+  #         weight: 300
+  #       - asset: assets/fonts/inter/Inter_18pt-Regular.ttf
+  #         weight: 400
+  #       - asset: assets/fonts/inter/Inter_18pt-Medium.ttf
+  #         weight: 500
+  #       - asset: assets/fonts/inter/Inter_18pt-SemiBold.ttf
+  #         weight: 600
+  #       - asset: assets/fonts/inter/Inter_18pt-Bold.ttf
+  #         weight: 700
+  #       - asset: assets/fonts/inter/Inter_18pt-ExtraBold.ttf
+  #         weight: 800
+  #       - asset: assets/fonts/inter/Inter_18pt-Black.ttf
+  #         weight: 900

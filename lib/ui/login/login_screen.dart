@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:statball/app/config/routes/router.dart';
-import 'package:statball/app/config/routes/routes.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import 'package:statball/app/global/constants.dart' show defaultPadding;
+import 'package:statball/app/providers/forms/login_form_cubit.dart';
+import 'package:statball/ui/shared/widgets/statball_widget.dart';
+
+import 'widgets/login_form.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -8,11 +13,40 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       body: Center(
-        child: ElevatedButton(
-          onPressed: () => routemaster.replace(rootPath),
-          child: const Text('Go To Root'),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: Card(
+                margin: const EdgeInsets.all(defaultPadding * 1.5),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: defaultPadding * 1.5,
+                    horizontal: defaultPadding * 2,
+                  ),
+                  child: Column(
+                    mainAxisSize: .min,
+                    mainAxisAlignment: .center,
+                    children: [
+                      const Align(alignment: .centerLeft, child: BackButton()),
+                      StatballWidget(
+                        before: 'Bienevenido a\n',
+                        style: Theme.of(context).textTheme.headlineLarge,
+                      ),
+                      const SizedBox(height: defaultPadding),
+                      //const LoginForm(),
+                      BlocProvider(
+                        create: (context) => LoginFormCubit(),
+                        child: const LoginForm(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );

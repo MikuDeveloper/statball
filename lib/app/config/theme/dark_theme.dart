@@ -5,7 +5,7 @@ import 'theme_colors.dart';
 
 class DarkTheme {
   static ThemeData get themeData => ThemeData(
-    useMaterial3: true,
+    brightness: Brightness.dark,
     visualDensity: VisualDensity.adaptivePlatformDensity,
     scaffoldBackgroundColor: ThemeColors.backgroundDark,
     primaryColor: ThemeColors.accentDark,
@@ -22,32 +22,69 @@ class DarkTheme {
       onError: ThemeColors.surfaceDark, // Color(0xFF0A0A0F),
     ),
 
-    textTheme: GoogleFonts.interTextTheme().copyWith(
-      displayLarge: const TextStyle(
+    textTheme: const TextTheme(
+      displayLarge: TextStyle(
+        color: ThemeColors.textPrimaryDark,
+        fontWeight: FontWeight.w800,
+      ),
+      displayMedium: TextStyle(
         color: ThemeColors.textPrimaryDark,
         fontWeight: FontWeight.bold,
       ),
-      displayMedium: const TextStyle(
+      displaySmall: TextStyle(
         color: ThemeColors.textPrimaryDark,
         fontWeight: FontWeight.w600,
       ),
-      bodyLarge: const TextStyle(color: ThemeColors.textPrimaryDark),
-      bodyMedium: const TextStyle(color: ThemeColors.textMutedDark),
-      labelLarge: const TextStyle(
+      headlineLarge: TextStyle(
         color: ThemeColors.textPrimaryDark,
+        fontWeight: FontWeight.w800,
+      ),
+      headlineMedium: TextStyle(
+        color: ThemeColors.textPrimaryDark,
+        fontWeight: FontWeight.bold,
+      ),
+      headlineSmall: TextStyle(
+        color: ThemeColors.textPrimaryDark,
+        fontWeight: FontWeight.w600,
+      ),
+      titleLarge: TextStyle(
+        color: ThemeColors.textPrimaryDark,
+        fontWeight: FontWeight.w800,
+      ),
+      titleMedium: TextStyle(
+        color: ThemeColors.textPrimaryDark,
+        fontWeight: FontWeight.bold,
+      ),
+      titleSmall: TextStyle(
+        color: ThemeColors.textPrimaryDark,
+        fontWeight: FontWeight.w600,
+      ),
+      bodyLarge: TextStyle(color: ThemeColors.textPrimaryDark),
+      bodyMedium: TextStyle(color: ThemeColors.textMutedDark),
+      bodySmall: TextStyle(color: ThemeColors.textPrimaryDark),
+      labelLarge: TextStyle(
+        color: ThemeColors.textMutedDark,
+        fontWeight: FontWeight.w500,
+      ),
+      labelMedium: TextStyle(
+        color: ThemeColors.textMutedDark,
+        fontWeight: FontWeight.w500,
+      ),
+      labelSmall: TextStyle(
+        color: ThemeColors.textMutedDark,
         fontWeight: FontWeight.w500,
       ),
     ),
 
-    appBarTheme: const AppBarTheme(
+    appBarTheme: AppBarTheme(
       backgroundColor: ThemeColors.backgroundDark,
       elevation: 0,
       scrolledUnderElevation: 0,
-      iconTheme: IconThemeData(color: ThemeColors.textPrimaryDark),
-      titleTextStyle: TextStyle(
+      iconTheme: const IconThemeData(color: ThemeColors.textPrimaryDark),
+      titleTextStyle: GoogleFonts.inter(
         color: ThemeColors.textPrimaryDark,
         fontSize: 20,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.bold,
       ),
     ),
 
@@ -58,7 +95,7 @@ class DarkTheme {
         elevation: 0,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+        textStyle: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16),
       ),
     ),
 
@@ -68,7 +105,7 @@ class DarkTheme {
         side: const BorderSide(color: ThemeColors.borderDark, width: 1.5),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+        textStyle: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16),
       ),
     ),
 

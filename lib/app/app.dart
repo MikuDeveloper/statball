@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:routemaster/routemaster.dart';
 import 'package:statball/app/providers/theme_mode_cubit.dart';
 
@@ -19,8 +21,15 @@ class StatballApp extends StatelessWidget {
       routerDelegate: routemaster,
       routeInformationParser: const RoutemasterParser(),
       title: 'Statball',
-      theme: LightTheme.themeData,
-      darkTheme: DarkTheme.themeData,
+      scrollBehavior: const ScrollBehavior().copyWith(
+        physics: const BouncingScrollPhysics(),
+      ),
+      theme: LightTheme.themeData.copyWith(
+        textTheme: GoogleFonts.interTextTheme(LightTheme.themeData.textTheme),
+      ),
+      darkTheme: DarkTheme.themeData.copyWith(
+        textTheme: GoogleFonts.interTextTheme(DarkTheme.themeData.textTheme),
+      ),
       themeMode: themeMode.state,
     );
   }

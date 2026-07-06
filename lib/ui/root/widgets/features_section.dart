@@ -42,6 +42,7 @@ class _FeatureCard extends StatelessWidget {
                   textAlign: .center,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
+                    letterSpacing: -0.5,
                     color: Utils.setColorForTheme(
                       context: context,
                       light: ThemeColors.accent,

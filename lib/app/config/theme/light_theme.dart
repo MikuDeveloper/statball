@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:statball/app/global/constants.dart' show defaultRadius;
 
 import 'theme_colors.dart';
 
 class LightTheme {
   static ThemeData get themeData => ThemeData(
-    useMaterial3: true,
+    brightness: Brightness.light,
     visualDensity: VisualDensity.adaptivePlatformDensity,
     scaffoldBackgroundColor: ThemeColors.backgroundLight,
     primaryColor: ThemeColors.accent,
@@ -21,32 +22,69 @@ class LightTheme {
       onError: ThemeColors.surfaceLight,
     ),
 
-    textTheme: GoogleFonts.interTextTheme().copyWith(
-      displayLarge: const TextStyle(
+    textTheme: const TextTheme(
+      displayLarge: TextStyle(
+        color: ThemeColors.textPrimaryLight,
+        fontWeight: FontWeight.w800,
+      ),
+      displayMedium: TextStyle(
         color: ThemeColors.textPrimaryLight,
         fontWeight: FontWeight.bold,
       ),
-      displayMedium: const TextStyle(
+      displaySmall: TextStyle(
         color: ThemeColors.textPrimaryLight,
         fontWeight: FontWeight.w600,
       ),
-      bodyLarge: const TextStyle(color: ThemeColors.textPrimaryLight),
-      bodyMedium: const TextStyle(color: ThemeColors.textMutedLight),
-      labelLarge: const TextStyle(
+      headlineLarge: TextStyle(
         color: ThemeColors.textPrimaryLight,
+        fontWeight: FontWeight.w800,
+      ),
+      headlineMedium: TextStyle(
+        color: ThemeColors.textPrimaryLight,
+        fontWeight: FontWeight.bold,
+      ),
+      headlineSmall: TextStyle(
+        color: ThemeColors.textPrimaryLight,
+        fontWeight: FontWeight.w600,
+      ),
+      titleLarge: TextStyle(
+        color: ThemeColors.textPrimaryLight,
+        fontWeight: FontWeight.w800,
+      ),
+      titleMedium: TextStyle(
+        color: ThemeColors.textPrimaryLight,
+        fontWeight: FontWeight.bold,
+      ),
+      titleSmall: TextStyle(
+        color: ThemeColors.textPrimaryLight,
+        fontWeight: FontWeight.w600,
+      ),
+      bodyLarge: TextStyle(color: ThemeColors.textPrimaryLight),
+      bodyMedium: TextStyle(color: ThemeColors.textMutedLight),
+      bodySmall: TextStyle(color: ThemeColors.textPrimaryLight),
+      labelLarge: TextStyle(
+        color: ThemeColors.textMutedLight,
+        fontWeight: FontWeight.w500,
+      ),
+      labelMedium: TextStyle(
+        color: ThemeColors.textMutedLight,
+        fontWeight: FontWeight.w500,
+      ),
+      labelSmall: TextStyle(
+        color: ThemeColors.textMutedLight,
         fontWeight: FontWeight.w500,
       ),
     ),
 
-    appBarTheme: const AppBarTheme(
+    appBarTheme: AppBarTheme(
       backgroundColor: ThemeColors.backgroundLight,
       elevation: 0,
       scrolledUnderElevation: 0,
-      iconTheme: IconThemeData(color: ThemeColors.textPrimaryLight),
-      titleTextStyle: TextStyle(
+      iconTheme: const IconThemeData(color: ThemeColors.textPrimaryLight),
+      titleTextStyle: GoogleFonts.inter(
         color: ThemeColors.textPrimaryLight,
         fontSize: 20,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.bold,
       ),
     ),
 
@@ -56,8 +94,10 @@ class LightTheme {
         foregroundColor: ThemeColors.onAccent,
         elevation: 0,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(defaultRadius / 2),
+        ),
+        textStyle: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16),
       ),
     ),
 
@@ -67,7 +107,7 @@ class LightTheme {
         side: const BorderSide(color: ThemeColors.borderLight, width: 1.5),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+        textStyle: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16),
       ),
     ),
 

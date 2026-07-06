@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:statball/app/config/theme/theme_colors.dart';
 import 'package:statball/app/global/constants.dart' show defaultPadding;
 import 'package:statball/app/global/utils.dart';
+import 'package:statball/ui/shared/widgets/statball_widget.dart';
 
 class StatballBanner extends StatelessWidget {
   const StatballBanner({super.key});
@@ -13,30 +14,7 @@ class StatballBanner extends StatelessWidget {
       mainAxisSize: .min,
       crossAxisAlignment: .start,
       children: [
-        Text.rich(
-          TextSpan(
-            text: 'STAT',
-            style: const TextStyle(
-              color: ThemeColors.accent,
-              letterSpacing: 1.4,
-            ),
-            children: [
-              TextSpan(
-                text: 'BALL',
-                style: TextStyle(
-                  color: Utils.setColorForTheme(
-                    context: context,
-                    light: ThemeColors.textPrimaryLight,
-                    dark: ThemeColors.textPrimaryDark,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          style: Theme.of(
-            context,
-          ).textTheme.displayLarge?.copyWith(fontWeight: FontWeight.bold),
-        ),
+        const StatballWidget(),
         Text(
           'Visorias de fútbol en tiempo real',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
