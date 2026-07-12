@@ -3,16 +3,20 @@ import 'package:flutter/foundation.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
+
 import 'package:statball/app/providers/is_logged_cubit.dart';
+import 'package:statball/app/providers/nav_index_cubit.dart';
 import 'package:statball/app/providers/theme_mode_cubit.dart';
 
 import 'app/app.dart';
 import 'app/global/assets.dart';
 
 Future<void> main() async {
+  await dotenv.load();
   WidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
   LicenseRegistry.addLicense(() async* {
@@ -30,6 +34,7 @@ Future<void> main() async {
       providers: [
         BlocProvider(create: (context) => ThemeModeCubit()),
         BlocProvider(create: (context) => IsLoggedCubit()),
+        BlocProvider(create: (context) => NavIndexCubit()),
       ],
       child: const StatballApp(),
     ),

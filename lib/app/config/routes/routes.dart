@@ -8,6 +8,7 @@ import 'transitions/slide_transition_page.dart';
 final String rootPath = '/';
 final String loginPath = '/login';
 final String appPath = '/app';
+final String settingsPath = '/app/settings';
 
 final loggedOutRouteMap = RouteMap(
   onUnknownRoute: (_) => Redirect(rootPath),
@@ -24,5 +25,7 @@ final loggedInRouteMap = RouteMap(
   routes: {
     appPath: (route) =>
         const SlideTransitionPage<AppScreen>(child: AppScreen()),
+    settingsPath: (route) =>
+        const SlideTransitionPage<SettingsScreen>(child: SettingsScreen()),
   },
 );
